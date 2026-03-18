@@ -123,7 +123,39 @@ const App = (() => {
       GitHubAPI.setToken(token);
       const user = await GitHubAPI.getUser();
       state.user = user;
-      state.role = document.querySelector('.role-btn.active')?.dataset.role || 'student';
+      let requestedRole = document.querySelector('.role-btn.active')?.dataset.role || 'student';
+
+      // Teacher role validation: verify the user is an admin/owner of at least one org
+      if (requestedRole === 'teacher') {
+        let isOrgAdmin = false;
+        try {
+          const orgs = await GitHubAPI.getOrgs();
+          for (const org of orgs) {
+            try {
+              const membership = await GitHubAPI.getMembership(org.login, user.login);
+              if (membership && (membership.role === 'admin' || membership.state === 'active')) {
+                isOrgAdmin = true;
+                break;
+              }
+            } catch (_) {
+              // membership check may fail for some orgs, continue
+            }
+          }
+          // Also check if user has any public repos (individual teacher without org)
+          if (!isOrgAdmin && user.public_repos > 0 && user.owned_private_repos > 0) {
+            isOrgAdmin = true;
+          }
+        } catch (_) {
+          // If org check fails, allow teacher role if user explicitly selected it
+          isOrgAdmin = true;
+        }
+        if (!isOrgAdmin) {
+          requestedRole = 'student';
+          toast('Role Updated', 'Teacher access requires admin/owner status in a GitHub organization. Defaulting to Student.', 'warning', 6000);
+        }
+      }
+
+      state.role = requestedRole;
       localStorage.setItem('user_role', state.role);
       toast('Welcome!', `Logged in as ${user.login}`, 'success');
       enterApp();
@@ -485,6 +517,15 @@ const App = (() => {
       case 'dobot_wait':           cmds.push({ type: 'wait',          args: [numVal(block, 'SECONDS')] }); break;
       case 'dobot_ai_grab_detected': cmds.push({ type: 'ai_grab_detected', args: [] }); break;
       case 'dobot_ai_follow_line': cmds.push({ type: 'ai_follow_line', args: [] }); break;
+      case 'dobot_read_color_sensor': cmds.push({ type: 'read_color_sensor', args: [] }); break;
+      case 'dobot_read_infrared':  cmds.push({ type: 'read_infrared', args: [] }); break;
+      case 'dobot_infrared_detected': cmds.push({ type: 'infrared_detected', args: [] }); break;
+      case 'dobot_conveyor_speed': cmds.push({ type: 'conveyor_speed', args: [numVal(block, 'SPEED'), block.getFieldValue('DIRECTION')] }); break;
+      case 'dobot_conveyor_stop':  cmds.push({ type: 'conveyor_stop', args: [] }); break;
+      case 'dobot_conveyor_distance': cmds.push({ type: 'conveyor_move', args: [numVal(block, 'DISTANCE'), block.getFieldValue('DIRECTION')] }); break;
+      case 'dobot_set_joint_angles': cmds.push({ type: 'set_joint_angles', args: [numVal(block, 'J1'), numVal(block, 'J2'), numVal(block, 'J3'), numVal(block, 'J4')] }); break;
+      case 'dobot_move_delta':     cmds.push({ type: 'move_delta', args: [numVal(block, 'DX'), numVal(block, 'DY'), numVal(block, 'DZ')] }); break;
+      case 'dobot_get_position':   cmds.push({ type: 'get_position', args: [] }); break;
     }
     return cmds;
   };
@@ -833,6 +874,7 @@ const App = (() => {
     selectRobot,
     saveCurrentFile,
     refreshDashboard,
+    refreshRepositories,
     loadOrgRepos,
     generateAndSwitchToPython,
   };

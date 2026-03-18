@@ -58,6 +58,10 @@ const GitHubAPI = (() => {
     return request('/user/orgs?per_page=100');
   };
 
+  const getMembership = async (org, username) => {
+    return request(`/orgs/${encodeURIComponent(org)}/memberships/${encodeURIComponent(username)}`);
+  };
+
   /* ---------- Repositories ---------- */
   const getUserRepos = async (page = 1) => {
     return request(`/user/repos?per_page=50&page=${page}&sort=updated&affiliation=owner,collaborator,organization_member`);
@@ -169,7 +173,7 @@ const GitHubAPI = (() => {
   return {
     setToken, getToken, clearToken,
     getUser, getCurrentUser,
-    getOrgs, getUserRepos, getOrgRepos, getRepo,
+    getOrgs, getMembership, getUserRepos, getOrgRepos, getRepo,
     getFileContents, getRepoTree,
     createOrUpdateFile, saveFile, uploadFile,
     getCommits, getBranches, getCollaborators,

@@ -38,6 +38,11 @@ const EventSheet = (() => {
     { id: 'set_speed_slow',  icon: '🐢',  label: 'Set Speed: Slow',         desc: 'Switch to slow speed',                category: 'Speed' },
     { id: 'set_speed_med',   icon: '🚶',  label: 'Set Speed: Medium',       desc: 'Switch to medium speed',              category: 'Speed' },
     { id: 'set_speed_fast',  icon: '🚀',  label: 'Set Speed: Fast',         desc: 'Switch to fast speed',                category: 'Speed' },
+    { id: 'read_color',      icon: '🎨',  label: 'Read Color Sensor',       desc: 'Read the color sensor value',         category: 'Sensors' },
+    { id: 'read_infrared',   icon: '📡',  label: 'Read Infrared',           desc: 'Read infrared sensor distance',       category: 'Sensors' },
+    { id: 'conveyor_fwd',    icon: '🏭',  label: 'Conveyor Forward',        desc: 'Run conveyor belt forward',           category: 'Conveyor', param: { label: 'mm/s', default: 50, type: 'number' } },
+    { id: 'conveyor_back',   icon: '🏭',  label: 'Conveyor Backward',       desc: 'Run conveyor belt backward',          category: 'Conveyor', param: { label: 'mm/s', default: 50, type: 'number' } },
+    { id: 'conveyor_stop',   icon: '⏹️',  label: 'Conveyor Stop',           desc: 'Stop the conveyor belt',              category: 'Conveyor' },
     { id: 'wait',            icon: '⏳',  label: 'Wait',                    desc: 'Pause execution',                     category: 'Control', param: { label: 'seconds', default: 1, type: 'number' } },
     { id: 'beep',            icon: '🔔',  label: 'Beep',                    desc: 'Make the robot beep',                 category: 'Actions' },
     { id: 'light_on',        icon: '💡',  label: 'Light ON',                desc: 'Turn indicator light on',             category: 'Actions' },
@@ -307,6 +312,11 @@ const EventSheet = (() => {
         case 'set_speed_slow': return "robot.set_speed('slow')";
         case 'set_speed_med':  return "robot.set_speed('medium')";
         case 'set_speed_fast': return "robot.set_speed('fast')";
+        case 'read_color':     return 'color = robot.read_color_sensor()';
+        case 'read_infrared':  return 'distance = robot.read_infrared()';
+        case 'conveyor_fwd':   return `robot.conveyor_speed(${p || 50}, 'forward')`;
+        case 'conveyor_back':  return `robot.conveyor_speed(${p || 50}, 'backward')`;
+        case 'conveyor_stop':  return 'robot.conveyor_stop()';
         case 'wait':           return `time.sleep(${p || 1})`;
         case 'beep':           return 'robot.beep()';
         case 'light_on':       return "robot.light('on')";

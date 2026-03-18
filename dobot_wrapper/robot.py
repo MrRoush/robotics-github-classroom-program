@@ -33,6 +33,15 @@ _SPEED_PRESETS = {
     'fast':   (300, 300),
 }
 
+# Joint-space movement mode for pydobot _set_ptp_cmd
+_MODE_MOVJ_ANGLE = 4
+
+# Infrared sensor detection threshold (mm)
+_IR_DETECTION_THRESHOLD_MM = 100
+
+# Default conveyor belt speed (mm/s)
+_DEFAULT_CONVEYOR_SPEED = 50
+
 
 class DobotRobot:
     """
@@ -190,6 +199,55 @@ class DobotRobot:
             return pose
         return (self._x, self._y, self._z, self._r)
 
+    def set_joint_angles(self, j1: float = 0, j2: float = 0,
+                         j3: float = 0, j4: float = 0):
+        """
+        Move the robot by setting the four joint angles directly (in degrees).
+
+        Args:
+            j1: Base rotation angle.
+            j2: Rear arm angle.
+            j3: Forearm angle.
+            j4: End effector rotation angle.
+        """
+        self._sim_log(f'set_joint_angles({j1}, {j2}, {j3}, {j4})')
+        if not self._sim and self._device:
+            # pydobot uses move_to_j for joint-space movement
+            try:
+                self._device._set_ptp_cmd(
+                    float(j1), float(j2), float(j3), float(j4),
+                    mode=_MODE_MOVJ_ANGLE, wait=True)
+            except Exception:
+                self._log('[WARN] Joint angle move not supported by this firmware.')
+
+    def move_delta(self, dx: float = 0, dy: float = 0, dz: float = 0):
+        """
+        Move the arm relative to its current position.
+
+        Args:
+            dx: Change in X (mm).
+            dy: Change in Y (mm).
+            dz: Change in Z (mm).
+        """
+        self._sim_log(f'move_delta({dx}, {dy}, {dz})')
+        self._x += float(dx)
+        self._y += float(dy)
+        self._z += float(dz)
+        if not self._sim and self._device:
+            self._device.move_to(self._x, self._y, self._z, self._r, wait=True)
+
+    def get_joint_angles(self) -> tuple:
+        """Return the current joint angles as (j1, j2, j3, j4)."""
+        if not self._sim and self._device:
+            try:
+                pose = self._device.pose()
+                # pydobot pose returns (x, y, z, r, j1, j2, j3, j4) in some versions
+                if len(pose) >= 8:
+                    return (pose[4], pose[5], pose[6], pose[7])
+            except Exception:
+                pass
+        return (0.0, 0.0, 0.0, 0.0)
+
     # ── Gripper / End Effector ─────────────────────────────────────────
 
     def grab(self):
@@ -266,6 +324,102 @@ class DobotRobot:
         """Pause execution for *seconds* seconds."""
         self._sim_log(f'wait({seconds}s)')
         time.sleep(float(seconds))
+
+    # ── Sensors ───────────────────────────────────────────────────────
+
+    def read_color_sensor(self) -> str:
+        """
+        Read the color sensor attached to the Dobot.
+
+        Returns:
+            Color name: 'red', 'green', 'blue', 'yellow', 'white', 'black',
+            or 'unknown'.
+        """
+        self._sim_log('read_color_sensor()')
+        if not self._sim and self._device:
+            try:
+                # Dobot color sensor connected via I/O port
+                r = self._device.get_color_sensor()
+                if r:
+                    return r
+            except Exception:
+                self._log('[SENSOR] Color sensor read not supported by firmware.')
+        return 'red'
+
+    def read_infrared(self) -> float:
+        """
+        Read the infrared distance sensor (mm).
+
+        Returns:
+            Distance value in millimeters, or -1 if not available.
+        """
+        self._sim_log('read_infrared()')
+        if not self._sim and self._device:
+            try:
+                val = self._device.get_ir_switch(1)
+                return float(val) if val else -1
+            except Exception:
+                self._log('[SENSOR] Infrared sensor not supported by firmware.')
+        return 50.0
+
+    def infrared_detected(self) -> bool:
+        """
+        Check if the infrared sensor detects an object nearby.
+
+        Returns:
+            True if an object is detected, False otherwise.
+        """
+        self._sim_log('infrared_detected()')
+        dist = self.read_infrared()
+        return 0 < dist < _IR_DETECTION_THRESHOLD_MM
+
+    # ── Conveyor Belt ─────────────────────────────────────────────────
+
+    def conveyor_speed(self, speed: float = 50, direction: str = 'forward'):
+        """
+        Set the conveyor belt speed and direction.
+
+        Args:
+            speed: Speed in mm/s (positive value).
+            direction: 'forward' or 'backward'.
+        """
+        actual_speed = float(speed) if direction == 'forward' else -float(speed)
+        self._sim_log(f"conveyor_speed({speed}, '{direction}')")
+        if not self._sim and self._device:
+            try:
+                # Dobot conveyor belt uses the stepper motor interface
+                self._device.conveyor_belt(actual_speed)
+            except Exception:
+                self._log('[CONVEYOR] Conveyor control not supported by firmware.')
+
+    def conveyor_stop(self):
+        """Stop the conveyor belt."""
+        self._sim_log('conveyor_stop()')
+        if not self._sim and self._device:
+            try:
+                self._device.conveyor_belt(0)
+            except Exception:
+                self._log('[CONVEYOR] Conveyor stop not supported by firmware.')
+
+    def conveyor_move(self, distance: float = 100,
+                      direction: str = 'forward'):
+        """
+        Move the conveyor belt a specific distance.
+
+        Args:
+            distance: Distance to move in mm.
+            direction: 'forward' or 'backward'.
+        """
+        actual_dist = float(distance) if direction == 'forward' else -float(distance)
+        self._sim_log(f"conveyor_move({distance}, '{direction}')")
+        if not self._sim and self._device:
+            try:
+                self._device.conveyor_belt(_DEFAULT_CONVEYOR_SPEED, interface=0)
+                move_time = abs(distance) / _DEFAULT_CONVEYOR_SPEED
+                time.sleep(move_time)
+                self._device.conveyor_belt(0)
+            except Exception:
+                self._log('[CONVEYOR] Conveyor distance move not supported by firmware.')
 
     # ── AI Features (AI Starter / Magician AI Kit) ────────────────────
 

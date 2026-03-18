@@ -743,11 +743,15 @@ button, input, select, textarea {
 }
 
 /* ---- Event Sheet ---- */
+#panel-eventsheet {
+  position: relative;
+  z-index: 1;
+}
+
 #event-sheet-container {
   width: 100%;
   height: 100%;
-  position: absolute;
-  inset: 0;
+  position: relative;
   overflow-y: auto;
   background: var(--color-bg);
   padding: 20px;
@@ -931,6 +935,114 @@ button, input, select, textarea {
 .log-line.success { color: #68d391; }
 .log-line.error { color: #fc8181; }
 .log-line.warn { color: #f6ad55; }
+
+/* ---- Robot Position Display ---- */
+.position-display {
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+}
+
+.position-display-header {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.position-display-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 4px;
+}
+
+.pos-row {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.pos-label {
+  font-weight: 700;
+  color: var(--color-primary);
+  min-width: 14px;
+}
+
+.pos-value {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.pos-unit {
+  font-size: 10px;
+  color: var(--color-text-secondary);
+}
+
+/* ---- Python Command Reference Panel ---- */
+.py-command-panel {
+  width: 200px;
+  background: #1e293b;
+  border-right: 1px solid #334155;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.py-command-header {
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #e2e8f0;
+  border-bottom: 1px solid #334155;
+  background: #0f172a;
+}
+
+.py-command-list {
+  overflow-y: auto;
+  padding: 4px 0;
+  flex: 1;
+}
+
+.py-cmd-section {
+  padding: 8px 12px 4px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748b;
+}
+
+.py-cmd-btn {
+  display: block;
+  width: 100%;
+  padding: 4px 12px;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.py-cmd-btn:hover {
+  background: #334155;
+  color: #e2e8f0;
+}
+
+.py-cmd-btn:active {
+  background: #3b82f6;
+  color: white;
+}
 
 /* ---- Teacher Dashboard ---- */
 .student-table {

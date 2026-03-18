@@ -14,6 +14,8 @@ const BlocklySetup = (() => {
     speed:     '#059669',
     io:        '#d97706',
     ai:        '#dc2626',
+    sensor:    '#0d9488',
+    conveyor:  '#7c3aed',
     control:   '#0891b2',
     math:      '#4f46e5',
     vex:       '#f59e0b',
@@ -142,6 +144,45 @@ const BlocklySetup = (() => {
         this.setNextStatement(true, null);
         this.setColour(COLORS.movement);
         this.setTooltip('Move the robot arm to exact X, Y, Z coordinates.');
+      }
+    };
+
+    Blockly.Blocks['dobot_set_joint_angles'] = {
+      init() {
+        this.appendDummyInput().appendField('🔩 Set Joint Angles');
+        this.appendValueInput('J1').setCheck('Number').appendField('J1:');
+        this.appendValueInput('J2').setCheck('Number').appendField('J2:');
+        this.appendValueInput('J3').setCheck('Number').appendField('J3:');
+        this.appendValueInput('J4').setCheck('Number').appendField('J4:');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.movement);
+        this.setTooltip('Move the robot by setting the four joint angles (degrees) directly.');
+      }
+    };
+
+    Blockly.Blocks['dobot_move_delta'] = {
+      init() {
+        this.appendDummyInput().appendField('↗️ Move Delta');
+        this.appendValueInput('DX').setCheck('Number').appendField('ΔX:');
+        this.appendValueInput('DY').setCheck('Number').appendField('ΔY:');
+        this.appendValueInput('DZ').setCheck('Number').appendField('ΔZ:');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.movement);
+        this.setTooltip('Move the robot arm relative to its current position by the given deltas.');
+      }
+    };
+
+    Blockly.Blocks['dobot_get_position'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('📐 Get Current Position');
+        this.setOutput(true, 'String');
+        this.setColour(COLORS.movement);
+        this.setTooltip('Returns the current robot position as (x, y, z, r).');
       }
     };
 
@@ -313,6 +354,89 @@ const BlocklySetup = (() => {
       }
     };
 
+    // ── SENSOR BLOCKS ──────────────────────────────────────────────────────
+
+    Blockly.Blocks['dobot_read_color_sensor'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('🎨 Read Color Sensor');
+        this.setOutput(true, 'String');
+        this.setColour(COLORS.sensor);
+        this.setTooltip('Read the color sensor. Returns the detected color (e.g., "red", "green", "blue").');
+      }
+    };
+
+    Blockly.Blocks['dobot_read_infrared'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('📡 Read Infrared Sensor');
+        this.setOutput(true, 'Number');
+        this.setColour(COLORS.sensor);
+        this.setTooltip('Read the infrared sensor distance value in millimeters.');
+      }
+    };
+
+    Blockly.Blocks['dobot_infrared_detected'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('📡 Infrared Object Detected?');
+        this.setOutput(true, 'Boolean');
+        this.setColour(COLORS.sensor);
+        this.setTooltip('Returns true if the infrared sensor detects an object nearby.');
+      }
+    };
+
+    // ── CONVEYOR BELT BLOCKS ─────────────────────────────────────────────
+
+    Blockly.Blocks['dobot_conveyor_speed'] = {
+      init() {
+        this.appendValueInput('SPEED')
+          .setCheck('Number')
+          .appendField('🏭 Set Conveyor Speed');
+        this.appendDummyInput()
+          .appendField('mm/s')
+          .appendField(new Blockly.FieldDropdown([
+            ['Forward', 'forward'],
+            ['Backward', 'backward'],
+          ]), 'DIRECTION');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.conveyor);
+        this.setTooltip('Set the conveyor belt speed and direction.');
+      }
+    };
+
+    Blockly.Blocks['dobot_conveyor_stop'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('⏹️ Stop Conveyor Belt');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.conveyor);
+        this.setTooltip('Stop the conveyor belt.');
+      }
+    };
+
+    Blockly.Blocks['dobot_conveyor_distance'] = {
+      init() {
+        this.appendValueInput('DISTANCE')
+          .setCheck('Number')
+          .appendField('🏭 Move Conveyor');
+        this.appendDummyInput()
+          .appendField('mm')
+          .appendField(new Blockly.FieldDropdown([
+            ['Forward', 'forward'],
+            ['Backward', 'backward'],
+          ]), 'DIRECTION');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.conveyor);
+        this.setTooltip('Move the conveyor belt a specific distance in millimeters.');
+      }
+    };
+
     // ── VEX BLOCKS ───────────────────────────────────────────────────────
 
     Blockly.Blocks['vex_drive_forward'] = {
@@ -390,6 +514,20 @@ const BlocklySetup = (() => {
       const z = P.valueToCode(b, 'Z', P.ORDER_NONE) || 0;
       return `robot.move_to(${x}, ${y}, ${z})\n`;
     };
+    P['dobot_set_joint_angles'] = (b) => {
+      const j1 = P.valueToCode(b, 'J1', P.ORDER_NONE) || 0;
+      const j2 = P.valueToCode(b, 'J2', P.ORDER_NONE) || 0;
+      const j3 = P.valueToCode(b, 'J3', P.ORDER_NONE) || 0;
+      const j4 = P.valueToCode(b, 'J4', P.ORDER_NONE) || 0;
+      return `robot.set_joint_angles(${j1}, ${j2}, ${j3}, ${j4})\n`;
+    };
+    P['dobot_move_delta'] = (b) => {
+      const dx = P.valueToCode(b, 'DX', P.ORDER_NONE) || 0;
+      const dy = P.valueToCode(b, 'DY', P.ORDER_NONE) || 0;
+      const dz = P.valueToCode(b, 'DZ', P.ORDER_NONE) || 0;
+      return `robot.move_delta(${dx}, ${dy}, ${dz})\n`;
+    };
+    P['dobot_get_position']  = () => ['robot.get_position()', P.ORDER_FUNCTION_CALL];
     P['dobot_grab']          = () => 'robot.grab()\n';
     P['dobot_release']       = () => 'robot.release()\n';
     P['dobot_claw_open']     = () => 'robot.claw_open()\n';
@@ -404,6 +542,20 @@ const BlocklySetup = (() => {
     P['dobot_ai_color_detect']= () => ['robot.ai_detect_color()', P.ORDER_FUNCTION_CALL];
     P['dobot_ai_face_detect'] = () => ['robot.ai_detect_face()', P.ORDER_FUNCTION_CALL];
     P['dobot_ai_grab_detected'] = () => 'robot.ai_grab_detected()\n';
+    P['dobot_read_color_sensor'] = () => ['robot.read_color_sensor()', P.ORDER_FUNCTION_CALL];
+    P['dobot_read_infrared']     = () => ['robot.read_infrared()', P.ORDER_FUNCTION_CALL];
+    P['dobot_infrared_detected'] = () => ['robot.infrared_detected()', P.ORDER_FUNCTION_CALL];
+    P['dobot_conveyor_speed']    = (b) => {
+      const speed = P.valueToCode(b, 'SPEED', P.ORDER_NONE) || 50;
+      const dir = b.getFieldValue('DIRECTION');
+      return `robot.conveyor_speed(${speed}, '${dir}')\n`;
+    };
+    P['dobot_conveyor_stop']     = () => 'robot.conveyor_stop()\n';
+    P['dobot_conveyor_distance'] = (b) => {
+      const dist = P.valueToCode(b, 'DISTANCE', P.ORDER_NONE) || 100;
+      const dir = b.getFieldValue('DIRECTION');
+      return `robot.conveyor_move(${dist}, '${dir}')\n`;
+    };
     P['vex_drive_forward']   = (b) => `drive_forward(${P.valueToCode(b, 'DISTANCE', P.ORDER_NONE) || 12})\n`;
     P['vex_turn']            = (b) => {
       const dir = b.getFieldValue('DIRECTION');
@@ -444,6 +596,22 @@ const BlocklySetup = (() => {
               Z: { block: { type: 'math_number', fields: { NUM: 0 } } },
             }
           },
+          { kind: 'block', type: 'dobot_set_joint_angles',
+            inputs: {
+              J1: { block: { type: 'math_number', fields: { NUM: 0 } } },
+              J2: { block: { type: 'math_number', fields: { NUM: 0 } } },
+              J3: { block: { type: 'math_number', fields: { NUM: 0 } } },
+              J4: { block: { type: 'math_number', fields: { NUM: 0 } } },
+            }
+          },
+          { kind: 'block', type: 'dobot_move_delta',
+            inputs: {
+              DX: { block: { type: 'math_number', fields: { NUM: 0 } } },
+              DY: { block: { type: 'math_number', fields: { NUM: 0 } } },
+              DZ: { block: { type: 'math_number', fields: { NUM: 0 } } },
+            }
+          },
+          { kind: 'block', type: 'dobot_get_position' },
         ]
       },
       {
@@ -488,6 +656,28 @@ const BlocklySetup = (() => {
           { kind: 'block', type: 'dobot_ai_face_detect' },
           { kind: 'block', type: 'dobot_ai_follow_line' },
           { kind: 'block', type: 'dobot_ai_grab_detected' },
+        ]
+      },
+      {
+        kind: 'category',
+        name: '📡 Sensors',
+        colour: COLORS.sensor,
+        contents: [
+          { kind: 'block', type: 'dobot_read_color_sensor' },
+          { kind: 'block', type: 'dobot_read_infrared' },
+          { kind: 'block', type: 'dobot_infrared_detected' },
+        ]
+      },
+      {
+        kind: 'category',
+        name: '🏭 Conveyor Belt',
+        colour: COLORS.conveyor,
+        contents: [
+          { kind: 'block', type: 'dobot_conveyor_speed',
+            inputs: { SPEED: { block: { type: 'math_number', fields: { NUM: 50 } } } } },
+          { kind: 'block', type: 'dobot_conveyor_stop' },
+          { kind: 'block', type: 'dobot_conveyor_distance',
+            inputs: { DISTANCE: { block: { type: 'math_number', fields: { NUM: 100 } } } } },
         ]
       },
       {
