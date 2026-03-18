@@ -150,6 +150,8 @@ const RobotSimulator = (() => {
     ctx.fillRect(barX, 20 + fillH, 8, barH - fillH);
     ctx.fillStyle = '#64748b';
     ctx.fillText('Z', barX - 1, 16);
+
+    updatePositionDisplay();
   };
 
   /* ---- Robot command handlers ---- */
@@ -315,6 +317,66 @@ const RobotSimulator = (() => {
       }
       log('✅ Line follow sequence done', 'success');
     },
+    // Sensor commands
+    read_color_sensor: async () => {
+      log('🎨 Reading color sensor...', 'info');
+      await new Promise(r => setTimeout(r, 400));
+      const colors = ['red', 'green', 'blue', 'yellow', 'white'];
+      const found = colors[Math.floor(Math.random() * colors.length)];
+      log(`🎨 Color sensor: "${found}"`, 'success');
+      return found;
+    },
+    read_infrared: async () => {
+      log('📡 Reading infrared sensor...', 'info');
+      await new Promise(r => setTimeout(r, 300));
+      const dist = Math.round(20 + Math.random() * 180);
+      log(`📡 Infrared distance: ${dist}mm`, 'success');
+      return dist;
+    },
+    infrared_detected: async () => {
+      log('📡 Checking infrared...', 'info');
+      await new Promise(r => setTimeout(r, 300));
+      const detected = Math.random() > 0.4;
+      log(`📡 Object ${detected ? 'detected!' : 'not detected'}`, detected ? 'success' : 'warn');
+      return detected;
+    },
+    // Conveyor commands
+    conveyor_speed: async (speed = 50, direction = 'forward') => {
+      log(`🏭 Conveyor: ${speed}mm/s ${direction}`, 'info');
+      state.conveyorRunning = true;
+      log('✅ Conveyor running', 'success');
+    },
+    conveyor_stop: async () => {
+      log('⏹️ Conveyor stopped', 'info');
+      state.conveyorRunning = false;
+    },
+    conveyor_move: async (distance = 100, direction = 'forward') => {
+      log(`🏭 Conveyor: moving ${distance}mm ${direction}`, 'info');
+      await new Promise(r => setTimeout(r, Math.min(distance * 10, 2000)));
+      log('✅ Conveyor move done', 'success');
+    },
+    // Advanced movement
+    set_joint_angles: async (j1 = 0, j2 = 0, j3 = 0, j4 = 0) => {
+      log(`🔩 Setting joints: J1=${j1} J2=${j2} J3=${j3} J4=${j4}`, 'info');
+      await animate((t, s) => {
+        state.rotation = s.rotation + (j1 - s.rotation) * t;
+      });
+      log('✅ Joint angles set', 'success');
+    },
+    move_delta: async (dx = 0, dy = 0, dz = 0) => {
+      log(`↗️ Move delta: Δ(${dx}, ${dy}, ${dz})`, 'info');
+      await animate((t, s) => {
+        state.x = s.x + dx * t;
+        state.y = s.y + dy * t;
+        state.z = Math.max(0, Math.min(s.z + dz * t, 200));
+      });
+      log('✅ Delta move done', 'success');
+    },
+    get_position: async () => {
+      const pos = `(${Math.round(state.x)}, ${Math.round(state.y)}, ${Math.round(state.z)}, ${Math.round(state.rotation)})`;
+      log(`📐 Position: ${pos}`, 'info');
+      return pos;
+    },
   };
 
   /* ---- Execute a sequence of commands ---- */
@@ -354,10 +416,24 @@ const RobotSimulator = (() => {
   };
 
   const reset = () => {
-    state = { x: 0, y: 0, z: 50, rotation: 0, gripper: false, clawOpen: true, speed: 'medium', log: [] };
+    state = { x: 0, y: 0, z: 50, rotation: 0, gripper: false, clawOpen: true, speed: 'medium', log: [], conveyorRunning: false };
     draw();
     renderLog();
+    updatePositionDisplay();
   };
+
+  const updatePositionDisplay = () => {
+    const el = document.getElementById('sim-position-display');
+    if (!el) return;
+    el.innerHTML = `
+      <div class="pos-row"><span class="pos-label">X:</span><span class="pos-value">${Math.round(state.x * 10) / 10}</span><span class="pos-unit">mm</span></div>
+      <div class="pos-row"><span class="pos-label">Y:</span><span class="pos-value">${Math.round(state.y * 10) / 10}</span><span class="pos-unit">mm</span></div>
+      <div class="pos-row"><span class="pos-label">Z:</span><span class="pos-value">${Math.round(state.z * 10) / 10}</span><span class="pos-unit">mm</span></div>
+      <div class="pos-row"><span class="pos-label">R:</span><span class="pos-value">${Math.round(state.rotation * 10) / 10}</span><span class="pos-unit">°</span></div>
+    `;
+  };
+
+  const getState = () => ({ ...state });
 
   /* ---- Init ---- */
   const init = (canvasId) => {
@@ -395,5 +471,5 @@ const RobotSimulator = (() => {
     return commands;
   };
 
-  return { init, execute, stop, reset, log, commands };
+  return { init, execute, stop, reset, log, commands, getState, updatePositionDisplay };
 })();

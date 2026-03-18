@@ -168,8 +168,9 @@
         <div class="status-dot" id="robot-dot"></div>
         <div class="status-info">
           <div class="status-label" id="robot-status-label">No Robot</div>
-          <div class="status-sub" id="robot-status-sub">Simulator Mode</div>
+          <div class="status-sub" id="robot-status-sub" title="Simulator Mode runs all commands visually on screen without a physical robot connected.">Simulator Mode</div>
         </div>
+        <button class="btn btn-ghost btn-icon" id="usb-help-btn" title="How to connect your robot" style="color:#94a3b8;font-size:14px;padding:4px;">❓</button>
       </div>
       <button class="btn btn-ghost" style="color:#94a3b8;font-size:13px;" id="logout-btn">
         ↩ Sign Out
@@ -292,19 +293,66 @@
           </div>
 
           <!-- Python Panel -->
-          <div id="panel-python" class="editor-panel hidden" style="height:100%;display:flex;flex-direction:column;">
-            <div id="py-monaco-container" style="flex:1;overflow:hidden;">
-              <div id="py-monaco" style="width:100%;height:100%;"></div>
+          <div id="panel-python" class="editor-panel hidden" style="height:100%;display:flex;flex-direction:row;">
+            <!-- Python Command Reference Sidebar -->
+            <div id="py-command-panel" class="py-command-panel">
+              <div class="py-command-header">📖 Command Reference</div>
+              <div class="py-command-list">
+                <div class="py-cmd-section">Movement</div>
+                <button class="py-cmd-btn" data-insert="robot.move_home()">robot.move_home()</button>
+                <button class="py-cmd-btn" data-insert="robot.move_to(x, y, z)">robot.move_to(x, y, z)</button>
+                <button class="py-cmd-btn" data-insert="robot.move_forward(10)">robot.move_forward(mm)</button>
+                <button class="py-cmd-btn" data-insert="robot.move_backward(10)">robot.move_backward(mm)</button>
+                <button class="py-cmd-btn" data-insert="robot.move_left(10)">robot.move_left(mm)</button>
+                <button class="py-cmd-btn" data-insert="robot.move_right(10)">robot.move_right(mm)</button>
+                <button class="py-cmd-btn" data-insert="robot.move_up(10)">robot.move_up(mm)</button>
+                <button class="py-cmd-btn" data-insert="robot.move_down(10)">robot.move_down(mm)</button>
+                <button class="py-cmd-btn" data-insert="robot.move_delta(dx, dy, dz)">robot.move_delta(dx, dy, dz)</button>
+                <button class="py-cmd-btn" data-insert="robot.rotate_left(45)">robot.rotate_left(deg)</button>
+                <button class="py-cmd-btn" data-insert="robot.rotate_right(45)">robot.rotate_right(deg)</button>
+                <button class="py-cmd-btn" data-insert="robot.set_joint_angles(j1, j2, j3, j4)">robot.set_joint_angles(…)</button>
+                <button class="py-cmd-btn" data-insert="robot.get_position()">robot.get_position()</button>
+                <div class="py-cmd-section">Gripper</div>
+                <button class="py-cmd-btn" data-insert="robot.grab()">robot.grab()</button>
+                <button class="py-cmd-btn" data-insert="robot.release()">robot.release()</button>
+                <button class="py-cmd-btn" data-insert="robot.claw_open()">robot.claw_open()</button>
+                <button class="py-cmd-btn" data-insert="robot.claw_close()">robot.claw_close()</button>
+                <div class="py-cmd-section">Speed &amp; I/O</div>
+                <button class="py-cmd-btn" data-insert="robot.set_speed('medium')">robot.set_speed(speed)</button>
+                <button class="py-cmd-btn" data-insert="time.sleep(1)">time.sleep(seconds)</button>
+                <button class="py-cmd-btn" data-insert="robot.beep()">robot.beep()</button>
+                <button class="py-cmd-btn" data-insert="robot.light('on')">robot.light(state)</button>
+                <div class="py-cmd-section">Sensors</div>
+                <button class="py-cmd-btn" data-insert="robot.read_color_sensor()">robot.read_color_sensor()</button>
+                <button class="py-cmd-btn" data-insert="robot.read_infrared()">robot.read_infrared()</button>
+                <button class="py-cmd-btn" data-insert="robot.infrared_detected()">robot.infrared_detected()</button>
+                <div class="py-cmd-section">Conveyor Belt</div>
+                <button class="py-cmd-btn" data-insert="robot.conveyor_speed(50, 'forward')">robot.conveyor_speed(…)</button>
+                <button class="py-cmd-btn" data-insert="robot.conveyor_stop()">robot.conveyor_stop()</button>
+                <button class="py-cmd-btn" data-insert="robot.conveyor_move(100, 'forward')">robot.conveyor_move(…)</button>
+                <div class="py-cmd-section">AI Features</div>
+                <button class="py-cmd-btn" data-insert="robot.ai_detect_object()">robot.ai_detect_object()</button>
+                <button class="py-cmd-btn" data-insert="robot.ai_detect_color()">robot.ai_detect_color()</button>
+                <button class="py-cmd-btn" data-insert="robot.ai_detect_face()">robot.ai_detect_face()</button>
+                <button class="py-cmd-btn" data-insert="robot.ai_grab_detected()">robot.ai_grab_detected()</button>
+                <button class="py-cmd-btn" data-insert="robot.ai_follow_line()">robot.ai_follow_line()</button>
+              </div>
             </div>
-            <div id="py-textarea-container" class="hidden" style="flex:1;">
-              <textarea id="py-textarea"
-                style="width:100%;height:100%;background:#1e1e1e;color:#d4d4d4;font-family:'Fira Code',monospace;font-size:14px;padding:16px;border:none;resize:none;outline:none;"
-                placeholder="# Write your Python code here&#10;import time&#10;from dobot_wrapper import DobotRobot&#10;&#10;robot = DobotRobot()&#10;&#10;robot.move_home()&#10;"></textarea>
+            <!-- Editor Area -->
+            <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+              <div id="py-monaco-container" style="flex:1;overflow:hidden;">
+                <div id="py-monaco" style="width:100%;height:100%;"></div>
+              </div>
+              <div id="py-textarea-container" class="hidden" style="flex:1;">
+                <textarea id="py-textarea"
+                  style="width:100%;height:100%;background:#1e1e1e;color:#d4d4d4;font-family:'Fira Code',monospace;font-size:14px;padding:16px;border:none;resize:none;outline:none;"
+                  placeholder="# Write your Python code here&#10;import time&#10;from dobot_wrapper import DobotRobot&#10;&#10;robot = DobotRobot()&#10;&#10;robot.move_home()&#10;"></textarea>
+              </div>
             </div>
           </div>
 
           <!-- Event Sheet Panel -->
-          <div id="panel-eventsheet" class="editor-panel hidden" style="height:100%;overflow:hidden;">
+          <div id="panel-eventsheet" class="editor-panel hidden" style="height:100%;overflow-y:auto;">
             <div id="event-sheet-container" style="height:100%;overflow-y:auto;padding:20px;"></div>
           </div>
 
@@ -329,6 +377,18 @@
             🤖 Robot Simulator
             <span id="sim-robot-type" style="margin-left:auto;font-size:11px;color:#64748b;font-weight:400;"></span>
           </div>
+
+          <!-- Robot Position Display -->
+          <div class="position-display">
+            <div class="position-display-header">📐 Robot Position</div>
+            <div id="sim-position-display" class="position-display-grid">
+              <div class="pos-row"><span class="pos-label">X:</span><span class="pos-value">0</span><span class="pos-unit">mm</span></div>
+              <div class="pos-row"><span class="pos-label">Y:</span><span class="pos-value">0</span><span class="pos-unit">mm</span></div>
+              <div class="pos-row"><span class="pos-label">Z:</span><span class="pos-value">50</span><span class="pos-unit">mm</span></div>
+              <div class="pos-row"><span class="pos-label">R:</span><span class="pos-value">0</span><span class="pos-unit">°</span></div>
+            </div>
+          </div>
+
           <div class="simulator-canvas-area">
             <canvas id="robot-canvas" style="width:100%;aspect-ratio:1;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;"></canvas>
             <div class="robot-controls" style="width:100%;">
@@ -652,6 +712,66 @@
           }
         });
       }
+    });
+
+    // Python command reference — click to insert at cursor
+    document.querySelectorAll('.py-cmd-btn[data-insert]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const text = btn.dataset.insert;
+        if (window.monacoEditor) {
+          const editor = window.monacoEditor;
+          const selection = editor.getSelection();
+          editor.executeEdits('', [{
+            range: selection,
+            text: text + '\n',
+            forceMoveMarkers: true,
+          }]);
+          editor.focus();
+        } else {
+          const ta = document.getElementById('py-textarea');
+          if (ta) {
+            const start = ta.selectionStart;
+            ta.value = ta.value.substring(0, start) + text + '\n' + ta.value.substring(ta.selectionEnd);
+            ta.selectionStart = ta.selectionEnd = start + text.length + 1;
+            ta.focus();
+          }
+        }
+      });
+    });
+
+    // USB connection help button
+    document.getElementById('usb-help-btn')?.addEventListener('click', () => {
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.innerHTML = `
+        <div class="modal" style="max-width:560px;">
+          <div class="modal-header">
+            <div class="modal-title">🔌 How to Connect Your Dobot Robot</div>
+            <button class="btn btn-ghost btn-icon" onclick="this.closest('.modal-overlay').remove()">✕</button>
+          </div>
+          <div class="modal-body" style="font-size:14px;line-height:1.7;">
+            <div style="font-weight:700;margin-bottom:8px;">Step-by-step USB Connection:</div>
+            <ol style="padding-left:20px;margin:0 0 16px;">
+              <li>Connect the Dobot Magician to your computer using the <strong>USB cable</strong> included with the robot.</li>
+              <li>Turn <strong>ON</strong> the Dobot using the power switch on the base.</li>
+              <li>Wait for the robot to <strong>initialize</strong> (it will move slightly and the LED will turn solid).</li>
+              <li>Install the Python driver: <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;">pip install pydobot pyserial</code></li>
+              <li>Run your Python program from the command line — the wrapper will <strong>auto-detect</strong> the USB port.</li>
+            </ol>
+            <div style="background:#fef3c7;border-radius:8px;padding:12px;margin-bottom:12px;">
+              <strong>⚠️ Simulator Mode:</strong> When no physical robot is connected, commands run visually in the on-screen simulator.
+              This lets you develop and test programs without a robot. Your code will work the same way on a real Dobot.
+            </div>
+            <div style="background:#f0fdf4;border-radius:8px;padding:12px;">
+              <strong>💡 Troubleshooting:</strong> If the robot is not detected, check that the USB cable is firmly connected,
+              the power is on, and no other program (like DobotStudio) is using the port.
+              On Windows, you may need to install the <strong>Silicon Labs CP210x USB driver</strong>.
+            </div>
+          </div>
+        </div>
+      `;
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+      document.body.appendChild(overlay);
     });
 
     // Update settings page user info
