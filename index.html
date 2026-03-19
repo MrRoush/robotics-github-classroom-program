@@ -773,7 +773,10 @@
             </ol>
             <div style="background:#eff6ff;border-radius:8px;padding:12px;margin-bottom:12px;">
               <strong>🔧 Manual Port Selection:</strong> If auto-detect does not find the robot, you can list ports and connect manually:
-              <pre style="background:#1e1e1e;color:#68d391;padding:10px;border-radius:6px;font-size:12px;margin:8px 0 0;">from dobot_wrapper import DobotRobot\n\nprint(DobotRobot.list_ports())   # see available ports\nrobot = DobotRobot(port='COM3')  # connect to your port</pre>
+              <pre style="background:#1e1e1e;color:#68d391;padding:10px;border-radius:6px;font-size:12px;margin:8px 0 0;">from dobot_wrapper import DobotRobot
+
+print(DobotRobot.list_ports())   # see available ports
+robot = DobotRobot(port='COM3')  # connect to your port</pre>
             </div>
             <div style="background:#fef3c7;border-radius:8px;padding:12px;margin-bottom:12px;">
               <strong>⚠️ Simulator Mode:</strong> When no physical robot is connected, commands run visually in the on-screen simulator.
