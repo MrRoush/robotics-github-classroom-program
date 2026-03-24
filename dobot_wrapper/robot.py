@@ -90,8 +90,9 @@ class DobotRobot:
             port: Serial port (e.g., 'COM3' on Windows, '/dev/ttyUSB0' on Linux).
                   If None, the wrapper will try to auto-detect the port.
             robot_type: 'magician', 'ai_starter', or 'magician_ai'.
-            debug: When True, enable advanced communication logging for
-                   troubleshooting connection and command issues.
+            debug: When True, enable verbose/advanced communication logging so
+                   that connection errors and serial exchanges are printed in
+                   detail — useful for diagnosing connection problems.
         """
         self._sim = True
         self._device = None
@@ -110,8 +111,11 @@ class DobotRobot:
         self._color_sensor_port = None
         self._infrared_port = None
         self._conveyor_port = None
-        self._connected_port = None
-        self._connection_errors = []
+        self._running = False           # True while a program is executing
+        self._lock_monitor_thread = None
+
+        if debug:
+            self._log('🔍 [DEBUG] Advanced communication mode enabled')
 
         if _HAS_PYDOBOT:
             try:
@@ -135,9 +139,10 @@ class DobotRobot:
                         self._log('⚠️  No Dobot found and no serial ports detected — running in simulation mode')
                         self._log('    Check that the USB cable is connected and the robot is powered on.')
             except Exception as e:
-                err_msg = str(e)
-                self._connection_errors.append(err_msg)
-                self._log(f'⚠️  Could not connect to Dobot ({err_msg}) — simulation mode')
+                self._log(f'⚠️  Could not connect to Dobot ({e}) — simulation mode')
+                if debug:
+                    import traceback
+                    self._log(f'[DEBUG] Full traceback:\n{traceback.format_exc()}')
                 self._log('    Try: robot = DobotRobot(port="COM3") to connect manually')
                 if self._debug:
                     import traceback
@@ -170,106 +175,23 @@ class DobotRobot:
             self._log(f'[ROBOT] {action}')
             self._debug_log(f'Command sent: {action}')
 
+    def _debug_log(self, message: str):
+        """Print a message only when debug/advanced mode is enabled."""
+        if self._debug:
+            self._log(f'[DEBUG] {message}')
+
     def _connect_to_port(self, port: str):
         """Attempt to open a connection to the Dobot on the given serial port."""
         from pydobot import Dobot
-        self._debug_log(f'Opening serial connection to {port} ...')
-        self._device = Dobot(port=port, verbose=self._debug)
+        verbose = self._debug  # pass verbose flag through to pydobot when debug mode is on
+        self._device = Dobot(port=port, verbose=verbose)
         self._sim = False
         self._connected_port = port
         v, a = _SPEED_PRESETS[self._speed]
         self._device.speed(velocity=v, acceleration=a)
         self._log(f'✅ Connected to Dobot on {port}')
-        self._debug_log(f'Speed set: velocity={v} mm/s, acceleration={a} mm/s²')
-
-    def _start_lock_monitor(self):
-        """
-        Start a background thread that monitors the Dobot lock/unlock button.
-
-        When the lock/unlock button is pressed while a program is running,
-        the robot will be emergency-stopped automatically for safety.
-        When the arm re-engages (unlock released), the current position is
-        refreshed from the robot.
-        """
-        def _monitor():
-            consecutive_alarm = 0
-            while not self._sim and self._device:
-                try:
-                    alarms = self._device.get_alarms_state()
-                    # Alarms are returned as a list of bytes; any non-zero
-                    # byte indicates an active alarm (includes lock/unlock events).
-                    alarm_active = alarms and any(alarms)
-                    if alarm_active:
-                        consecutive_alarm += 1
-                        if consecutive_alarm >= _ALARM_DEBOUNCE_THRESHOLD:
-                            if self._program_running and not self._lock_triggered:
-                                self._lock_triggered = True
-                                self._log('🔐 Lock/Unlock button detected — emergency stopping program')
-                                self.emergency_stop()
-                    else:
-                        if self._lock_triggered:
-                            # Arm re-engaged — refresh position from robot
-                            self._lock_triggered = False
-                            self._log('🔓 Robot re-engaged — updating current position')
-                            self._update_position_from_robot()
-                        consecutive_alarm = 0
-                except Exception:
-                    # Serial errors may occur transiently; keep monitoring
-                    pass
-                time.sleep(0.5)
-
-        t = threading.Thread(target=_monitor, daemon=True, name='DobotLockMonitor')
-        t.start()
-        self._debug_log('Lock/unlock monitor thread started')
-
-    def _update_position_from_robot(self):
-        """Refresh the cached position (x, y, z, r) from the physical robot."""
-        if self._sim or not self._device:
-            return
-        try:
-            pose = self._device.pose()
-            if pose and len(pose) >= 4:
-                self._x, self._y, self._z, self._r = (
-                    float(pose[0]), float(pose[1]),
-                    float(pose[2]), float(pose[3]),
-                )
-                self._log(f'📐 Position updated: X={self._x:.1f}, Y={self._y:.1f}, '
-                          f'Z={self._z:.1f}, R={self._r:.1f}')
-        except Exception as e:
-            self._log(f'[WARN] Could not read position after re-engagement: {e}')
-
-    def print_debug_info(self):
-        """
-        Print advanced connection and configuration diagnostics.
-
-        Use this to help troubleshoot communication problems between
-        the computer and the robot.
-
-        Example:
-            robot = DobotRobot(debug=True)
-            robot.print_debug_info()
-        """
-        self._log('═' * 60)
-        self._log('🔧 ADVANCED DEBUG INFORMATION')
-        self._log('═' * 60)
-        self._log(f'  Python version : {sys.version.split()[0]}')
-        self._log(f'  Platform       : {sys.platform}')
-        self._log(f'  pydobot        : {"installed ✅" if _HAS_PYDOBOT else "NOT installed ❌"}')
-        self._log(f'  pyserial       : {"installed ✅" if _HAS_SERIAL else "NOT installed ❌"}')
-        self._log(f'  Mode           : {"SIMULATION 🖥️" if self._sim else "REAL ROBOT 🤖"}')
-        self._log(f'  Connected port : {self._connected_port or "none"}')
-        self._log(f'  Robot type     : {self._robot_type}')
-        self._log(f'  Speed preset   : {self._speed}')
-        if _HAS_SERIAL:
-            ports = serial.tools.list_ports.comports()
-            self._log(f'  Available ports: {[p.device for p in ports] or "none found"}')
-            for p in ports:
-                self._log(f'    {p.device}: {p.description} [{p.hwid}]')
-        if self._connection_errors:
-            self._log(f'  Connection errors:')
-            for err in self._connection_errors:
-                self._log(f'    ❌ {err}')
-        self._log('═' * 60)
+        if self._debug:
+            self._log('[DEBUG] Connection details: pydobot Dobot instance created with verbose=True')
 
     @staticmethod
     def list_ports() -> list[str]:
@@ -325,9 +247,10 @@ class DobotRobot:
             self._connect_to_port(port)
             self._start_lock_monitor()
         except Exception as e:
-            err_msg = str(e)
-            self._connection_errors.append(err_msg)
-            self._log(f'❌ Failed to connect on {port}: {err_msg}')
+            self._log(f'❌ Failed to connect on {port}: {e}')
+            if self._debug:
+                import traceback
+                self._log(f'[DEBUG] Full traceback:\n{traceback.format_exc()}')
             self._log('   Make sure the USB cable is connected and no other program is using the port.')
             available = self.list_ports()
             if available:
@@ -642,12 +565,13 @@ class DobotRobot:
         self._sim_log(f'read_color_sensor(GP{port})')
         if not self._sim and self._device:
             try:
-                r = self._device.get_color_sensor()
+                # Dobot color sensor connected via GP I/O port
+                r = self._device.get_color_sensor(port)
                 if r:
                     self._debug_log(f'Color sensor GP{port} returned: {r}')
                     return r
-            except Exception as e:
-                self._log(f'[SENSOR] Color sensor read on GP{port} failed: {e}')
+            except Exception:
+                self._log(f'[SENSOR] Color sensor read on GP{port} not supported by firmware.')
         return 'red'
 
     def read_infrared(self) -> float:
@@ -665,10 +589,9 @@ class DobotRobot:
         if not self._sim and self._device:
             try:
                 val = self._device.get_ir_switch(port)
-                self._debug_log(f'Infrared sensor GP{port} raw value: {val}')
                 return float(val) if val else -1
-            except Exception as e:
-                self._log(f'[SENSOR] Infrared sensor read on GP{port} failed: {e}')
+            except Exception:
+                self._log(f'[SENSOR] Infrared sensor on GP{port} not supported by firmware.')
         return 50.0
 
     def infrared_detected(self) -> bool:
@@ -684,68 +607,72 @@ class DobotRobot:
 
     # ── Conveyor Belt ─────────────────────────────────────────────────
 
-    def conveyor_speed(self, speed: float = 50, direction: str = 'forward'):
+    def conveyor_speed(self, speed: float = 50, direction: str = 'forward',
+                       port: int = None):
         """
         Set the conveyor belt speed and direction.
 
         Args:
             speed: Speed in mm/s (positive value).
             direction: 'forward' or 'backward'.
+            port: Stepper port number (1 or 2).  If not given, uses the port
+                  last set by ``init_conveyor()``.
         """
-        port = self._conveyor_port or 1
-        # Dobot conveyor_belt interface index: STEPPER1=0, STEPPER2=1
-        interface = port - 1
+        active_port = int(port) if port is not None else self._conveyor_port
         actual_speed = float(speed) if direction == 'forward' else -float(speed)
-        self._sim_log(f"conveyor_speed({speed}, '{direction}', port=STEPPER{port})")
+        port_label = f'STEPPER{active_port}' if active_port is not None else 'default'
+        self._sim_log(f"conveyor_speed({speed}, '{direction}', port={port_label})")
         if not self._sim and self._device:
             try:
-                self._debug_log(f'conveyor_belt({actual_speed}, interface={interface})')
-                self._device.conveyor_belt(actual_speed, interface=interface)
-            except Exception as e:
-                self._log(f'[CONVEYOR] Conveyor speed on STEPPER{port} failed: {e}')
+                # Dobot conveyor belt uses the stepper motor interface.
+                # interface=0 → STEPPER1, interface=1 → STEPPER2
+                iface = (active_port - 1) if active_port is not None else 0
+                self._device.conveyor_belt(actual_speed, interface=iface)
+            except Exception:
+                self._log('[CONVEYOR] Conveyor control not supported by firmware.')
 
-    def conveyor_stop(self):
+    def conveyor_stop(self, port: int = None):
         """
         Stop the conveyor belt.
 
-        Stops whichever stepper port was last initialized with
-        ``init_conveyor(port)``.
+        Args:
+            port: Stepper port number (1 or 2).  If not given, uses the port
+                  last set by ``init_conveyor()``.
         """
-        port = self._conveyor_port or 1
-        interface = port - 1
-        self._sim_log(f'conveyor_stop(port=STEPPER{port})')
+        active_port = int(port) if port is not None else self._conveyor_port
+        port_label = f'STEPPER{active_port}' if active_port is not None else 'default'
+        self._sim_log(f'conveyor_stop(port={port_label})')
         if not self._sim and self._device:
             try:
-                self._debug_log(f'conveyor_belt(0, interface={interface})')
-                self._device.conveyor_belt(0, interface=interface)
-            except Exception as e:
-                self._log(f'[CONVEYOR] Conveyor stop on STEPPER{port} failed: {e}')
+                iface = (active_port - 1) if active_port is not None else 0
+                self._device.conveyor_belt(0, interface=iface)
+            except Exception:
+                self._log('[CONVEYOR] Conveyor stop not supported by firmware.')
 
     def conveyor_move(self, distance: float = 100,
-                      direction: str = 'forward'):
+                      direction: str = 'forward', port: int = None):
         """
         Move the conveyor belt a specific distance.
 
         Args:
             distance: Distance to move in mm.
             direction: 'forward' or 'backward'.
+            port: Stepper port number (1 or 2).  If not given, uses the port
+                  last set by ``init_conveyor()``.
         """
-        port = self._conveyor_port or 1
-        interface = port - 1
-        self._sim_log(f"conveyor_move({distance}, '{direction}', port=STEPPER{port})")
+        active_port = int(port) if port is not None else self._conveyor_port
+        actual_dist = float(distance) if direction == 'forward' else -float(distance)
+        port_label = f'STEPPER{active_port}' if active_port is not None else 'default'
+        self._sim_log(f"conveyor_move({distance}, '{direction}', port={port_label})")
         if not self._sim and self._device:
             try:
-                actual_speed = (
-                    _DEFAULT_CONVEYOR_SPEED if direction == 'forward'
-                    else -_DEFAULT_CONVEYOR_SPEED
-                )
-                self._debug_log(f'conveyor_belt({actual_speed}, interface={interface})')
-                self._device.conveyor_belt(actual_speed, interface=interface)
+                iface = (active_port - 1) if active_port is not None else 0
+                self._device.conveyor_belt(_DEFAULT_CONVEYOR_SPEED, interface=iface)
                 move_time = abs(distance) / _DEFAULT_CONVEYOR_SPEED
                 time.sleep(move_time)
-                self._device.conveyor_belt(0, interface=interface)
-            except Exception as e:
-                self._log(f'[CONVEYOR] Conveyor distance move on STEPPER{port} failed: {e}')
+                self._device.conveyor_belt(0, interface=iface)
+            except Exception:
+                self._log('[CONVEYOR] Conveyor distance move not supported by firmware.')
 
     # ── AI Features (AI Starter / Magician AI Kit) ────────────────────
 
@@ -869,6 +796,83 @@ class DobotRobot:
         self._emergency_stopped = False
         self._lock_triggered = False
         self._log('✅ Emergency stop cleared — robot ready')
+
+    def start_program(self):
+        """
+        Call this at the beginning of your program to enable lock/unlock safety
+        monitoring.  When the Dobot lock/unlock button is pressed while the
+        program is running, the robot will automatically emergency-stop to
+        protect the student and equipment.
+
+        Example:
+            robot.start_program()
+            robot.move_home()
+            # ... rest of your program ...
+            robot.end_program()
+        """
+        self._running = True
+        self._emergency_stopped = False
+        self._log('▶️  Program started — lock/unlock safety monitoring active')
+        if not self._sim and self._device:
+            self._start_lock_monitor()
+
+    def end_program(self):
+        """
+        Call this at the end of your program to stop lock/unlock monitoring.
+        """
+        self._running = False
+        self._log('⏹️  Program ended — lock/unlock monitoring stopped')
+
+    def _start_lock_monitor(self):
+        """Start a background thread that polls for the motor lock state."""
+        if self._lock_monitor_thread and self._lock_monitor_thread.is_alive():
+            return
+
+        def _monitor():
+            self._debug_log('Lock monitor thread started')
+            while self._running:
+                try:
+                    alarms = self._device.get_alarm_state()
+                    # Safely check if any alarm flag is set
+                    if alarms is not None:
+                        try:
+                            triggered = any(alarms)
+                        except TypeError:
+                            triggered = bool(alarms)
+                        if triggered:
+                            self._log('⚠️  Motor lock/alarm detected during program execution — triggering emergency stop')
+                            self.emergency_stop()
+                            break
+                except Exception as exc:
+                    self._debug_log(f'Lock monitor poll error: {exc}')
+                time.sleep(0.25)
+            self._debug_log('Lock monitor thread exited')
+
+        self._lock_monitor_thread = threading.Thread(target=_monitor, daemon=True)
+        self._lock_monitor_thread.start()
+
+    def update_position(self):
+        """
+        Refresh the internal position tracking from the physical robot.
+
+        Call this after unlocking and re-engaging the motors so that the
+        software's idea of where the arm is matches the arm's actual position.
+
+        Returns:
+            Tuple (x, y, z, r) — current arm position in mm/degrees.
+        """
+        if not self._sim and self._device:
+            try:
+                pose = self._device.pose()
+                self._x = pose[0]
+                self._y = pose[1]
+                self._z = pose[2]
+                self._r = pose[3]
+                self._log(f'📐 Position updated: X={self._x:.1f}, Y={self._y:.1f}, '
+                          f'Z={self._z:.1f}, R={self._r:.1f}')
+            except Exception as exc:
+                self._log(f'⚠️  Could not read position from robot: {exc}')
+        return (self._x, self._y, self._z, self._r)
 
     # ── Port Initialization ───────────────────────────────────────────
 
