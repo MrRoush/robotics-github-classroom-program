@@ -1,0 +1,4 @@
+# Local Bridge dependencies
+# Install with:  pip install -r requirements-bridge.txt
+flask>=2.3
+flask-socketio>=5.3

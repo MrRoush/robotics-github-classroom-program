@@ -119,16 +119,51 @@ Supported VEX file types: `.vex`, `.v5python`, `.py`, `.txt`, `.xml`
 
 ## 🐍 Running Code on a Real Robot
 
-The visual editor generates Python code you can run on a real Dobot:
+The visual editor generates Python code you can run on a real Dobot in two ways:
 
-### Install the wrapper
+### Option A — Local Bridge (Recommended): Run from the Browser
+
+The **Local Bridge** lets you click a button in the web IDE and have code execute on the robot immediately — no terminal required.
+
+#### Step 1 — Install bridge dependencies
 ```bash
-pip install pydobot
+pip install -r requirements-bridge.txt
+# or manually:
+pip install flask flask-socketio pydobot pyserial
 ```
 
-### Download your code
+#### Step 2 — Start the bridge
+```bash
+python bridge.py
+```
+You should see:
+```
+====================================================
+  Robotics Classroom — Local Bridge
+  Listening on  http://127.0.0.1:5000
+  Press Ctrl+C to stop
+====================================================
+```
+
+#### Step 3 — Connect from the IDE
+1. Open the IDE and navigate to the **Editor** view.
+2. Click **🔌 Connect to Bridge** in the toolbar.
+3. The button turns green when connected.
+4. Write or generate your Python code.
+5. Click **🤖 Run on Robot** — output streams live into the **Robot Terminal** panel.
+
+> **⏹ Stop:** Click the **Stop** button in the terminal header to terminate the program at any time.
+
+#### Browser compatibility note
+The browser connects to `ws://127.0.0.1:5000` (plain WebSocket) even if the IDE is served from an HTTPS host like GitHub Pages. Modern browsers (Chrome 94+, Firefox, Edge) allow this because `localhost` / `127.0.0.1` is treated as a *secure context*. The bridge server also sends `Access-Control-Allow-Private-Network: true` to satisfy Chrome's Private Network Access policy. **Safari** may require enabling the Develop → Disable Cross-Origin Restrictions setting.
+
+---
+
+### Option B — Manual: Download and Run in Terminal
+
 Save your `.py` file from the editor and run it:
 ```bash
+pip install pydobot
 python my_program.py
 ```
 
@@ -137,7 +172,7 @@ python my_program.py
 ### Requirements for real robot
 - Windows 10/11 (Dobot USB driver)
 - Python 3.8+
-- `pip install pydobot`
+- `pip install pydobot pyserial`
 - Dobot Magician USB cable connected
 
 ---
@@ -147,10 +182,13 @@ python my_program.py
 ```
 robotics-github-classroom-program/
 ├── index.html              ← Open this in your browser!
+├── bridge.py               ← Local Python bridge server (run to control real robot)
+├── requirements-bridge.txt ← Python deps for bridge.py
 ├── css/
 │   └── styles.css          ← All styling
 ├── js/
 │   ├── app.js              ← Main application controller
+│   ├── bridge.js           ← Local bridge WebSocket client
 │   ├── github-api.js       ← GitHub API integration
 │   ├── blockly-setup.js    ← Blockly + Dobot custom blocks
 │   ├── event-sheet.js      ← Event sheet coding interface
@@ -171,6 +209,8 @@ robotics-github-classroom-program/
 
 - Your GitHub token is stored **only in your browser's localStorage** — never sent to any server
 - All GitHub API calls go directly from your browser to `api.github.com`
+- **The local bridge never receives GitHub tokens** — it only receives Python code for execution
+- The bridge binds to `127.0.0.1` only — not accessible from outside your computer
 - No data is collected or stored anywhere else
 
 ---
@@ -184,6 +224,9 @@ robotics-github-classroom-program/
 | Can't see assignments | Make sure you're a member of the GitHub Classroom organization |
 | Monaco editor not loading | Check internet connection; a fallback text editor will be used instead |
 | File not saving | Make sure your token has `repo` (write) permission |
+| "Bridge Not Found" | Make sure `python bridge.py` is running on your computer |
+| Bridge connects but robot doesn't move | Check the COM port in Settings matches your robot's actual port |
+| Bridge works on Chrome but not Safari | Enable Develop → Disable Cross-Origin Restrictions in Safari |
 
 ---
 
