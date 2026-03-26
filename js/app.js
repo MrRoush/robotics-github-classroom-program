@@ -22,6 +22,7 @@ const App = (() => {
     students: [],
     autoSaveTimer: null,
     debugMode: false,        // advanced/verbose communication debug mode
+    bridgeRunning: false,    // true while a robot program is executing via the bridge
   };
 
   /* ---- Toast Notifications ---- */
@@ -586,6 +587,153 @@ const App = (() => {
     RobotSimulator.execute(commands);
   };
 
+  // ── Local Bridge helpers ────────────────────────────────────────────────
+
+  /** Return the current Python code from whichever editor tab is active. */
+  const getCurrentPythonCode = () => {
+    if (state.editorMode === 'python') {
+      return window.monacoEditor
+        ? window.monacoEditor.getValue()
+        : (document.getElementById('py-textarea')?.value || '');
+    }
+    // Auto-generate from Blockly or Event Sheet
+    if (state.editorMode === 'blockly' && state.blocklyReady) {
+      return BlocklySetup.getPythonCode();
+    }
+    if (state.editorMode === 'eventsheet') {
+      return EventSheet.toPython();
+    }
+    return '';
+  };
+
+  /** Append a line to the bridge terminal output div. */
+  const bridgeLog = (text, color) => {
+    const out = document.getElementById('bridge-output');
+    if (!out) return;
+    const line = document.createElement('div');
+    line.style.color = color || '#a0aec0';
+    line.style.whiteSpace = 'pre-wrap';
+    line.style.wordBreak = 'break-word';
+    line.textContent = text;
+    out.appendChild(line);
+    out.scrollTop = out.scrollHeight;
+  };
+
+  /** Update the bridge connect button and terminal panel to reflect the current connection state. */
+  const updateBridgeUI = (connected) => {
+    const connectBtn = document.getElementById('bridge-connect-btn');
+    const runBtn     = document.getElementById('bridge-run-btn');
+    const panel      = document.getElementById('bridge-terminal-panel');
+    if (connectBtn) {
+      connectBtn.textContent = connected ? '🔌 Bridge Connected' : '🔌 Connect to Bridge';
+      connectBtn.style.background    = connected ? '#059669' : '';
+      connectBtn.style.color         = connected ? 'white'   : '';
+      connectBtn.style.borderColor   = connected ? '#059669' : '';
+    }
+    if (runBtn)  runBtn.classList.toggle('hidden', !connected);
+    if (panel)   panel.classList.toggle('hidden', !connected);
+  };
+
+  /** Mark a run as in-progress / finished in the terminal header. */
+  const setBridgeRunning = (running) => {
+    state.bridgeRunning = running;
+    const statusEl  = document.getElementById('bridge-run-status');
+    const stopBtn   = document.getElementById('bridge-stop-code-btn');
+    const runBtn    = document.getElementById('bridge-run-btn');
+    if (statusEl) statusEl.textContent = running ? '● Running…' : '';
+    if (statusEl) statusEl.style.color = running ? '#68d391' : '#64748b';
+    if (stopBtn)  stopBtn.classList.toggle('hidden', !running);
+    if (runBtn)   runBtn.disabled = running;
+  };
+
+  /** Connect to (or disconnect from) the local bridge server. */
+  const toggleBridgeConnection = () => {
+    if (LocalBridge.isConnected()) {
+      LocalBridge.disconnect();
+      updateBridgeUI(false);
+      toast('Bridge Disconnected', 'Local bridge connection closed.', 'info');
+      return;
+    }
+
+    toast('Connecting…', 'Attempting to reach the local bridge on 127.0.0.1:5000', 'info', 3000);
+
+    LocalBridge.connect({
+      onStatus: ({ connected, message, error }) => {
+        if (connected) {
+          updateBridgeUI(true);
+          if (message) bridgeLog(`[bridge] ${message}`, '#63b3ed');
+          toast('Bridge Connected', 'Local bridge is ready. Click "Run on Robot" to execute code.', 'success');
+        } else {
+          updateBridgeUI(false);
+          setBridgeRunning(false);
+          if (error) {
+            bridgeLog(`[bridge] Connection failed: ${error}`, '#fc8181');
+            toast(
+              'Bridge Not Found',
+              'Make sure bridge.py is running on your computer (python bridge.py).',
+              'error',
+              6000
+            );
+          } else {
+            bridgeLog('[bridge] Disconnected.', '#f6ad55');
+          }
+        }
+      },
+      onOutput: ({ stream, data }) => {
+        const colors = { stdout: '#e2e8f0', stderr: '#fc8181', info: '#63b3ed' };
+        bridgeLog(data.replace(/\n$/, ''), colors[stream] || '#a0aec0');
+      },
+      onDone: ({ returncode }) => {
+        setBridgeRunning(false);
+        const ok = returncode === 0;
+        bridgeLog(
+          ok ? '✅ Program finished.' : `⚠️ Program exited (code ${returncode}).`,
+          ok ? '#68d391' : '#f6ad55'
+        );
+        toast(
+          ok ? 'Program Complete' : 'Program Ended',
+          ok ? 'Robot program finished successfully.' : `Exit code: ${returncode}`,
+          ok ? 'success' : 'warning'
+        );
+      },
+    });
+  };
+
+  /** Send the current Python code to the local bridge for robot execution. */
+  const runOnRobot = () => {
+    if (!LocalBridge.isConnected()) {
+      toast('Not Connected', 'Connect to the local bridge first.', 'warning');
+      return;
+    }
+    if (state.bridgeRunning) {
+      toast('Already Running', 'A program is already running. Stop it first.', 'warning');
+      return;
+    }
+
+    // If not already on the Python tab, generate code first
+    let code = getCurrentPythonCode();
+    if (!code.trim()) {
+      toast('No Code', 'Write or generate some Python code first.', 'warning');
+      return;
+    }
+
+    const port = localStorage.getItem('robot_port') || 'COM3';
+    setBridgeRunning(true);
+
+    // Clear previous output
+    const out = document.getElementById('bridge-output');
+    if (out) out.innerHTML = '';
+
+    try {
+      LocalBridge.runCode(code, port);
+    } catch (e) {
+      setBridgeRunning(false);
+      toast('Run Error', e.message, 'error');
+    }
+  };
+
+  // ── end Local Bridge helpers ─────────────────────────────────────────────
+
   const blockToCommands = (block) => {
     const cmds = [];
     const numVal = (block, field) => {
@@ -1038,6 +1186,23 @@ const App = (() => {
     });
     document.getElementById('reset-simulator-btn')?.addEventListener('click', () => RobotSimulator.reset());
 
+    // Local Bridge buttons
+    document.getElementById('bridge-connect-btn')?.addEventListener('click', toggleBridgeConnection);
+    document.getElementById('bridge-run-btn')?.addEventListener('click', runOnRobot);
+    document.getElementById('bridge-stop-code-btn')?.addEventListener('click', () => {
+      LocalBridge.stopCode();
+      setBridgeRunning(false);
+    });
+    document.getElementById('bridge-disconnect-btn')?.addEventListener('click', () => {
+      LocalBridge.disconnect();
+      updateBridgeUI(false);
+      setBridgeRunning(false);
+    });
+    document.getElementById('bridge-terminal-clear-btn')?.addEventListener('click', () => {
+      const out = document.getElementById('bridge-output');
+      if (out) out.innerHTML = '';
+    });
+
     // Simulator init
     RobotSimulator.init('robot-canvas');
 
@@ -1099,6 +1264,8 @@ const App = (() => {
     refreshRepositories,
     loadOrgRepos,
     generateAndSwitchToPython,
+    toggleBridgeConnection,
+    runOnRobot,
   };
 })();
 
