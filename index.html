@@ -16,6 +16,9 @@
   <script src="https://unpkg.com/blockly@10.4.3/python_compressed.js"></script>
   <script src="https://unpkg.com/blockly@10.4.3/msg/en.js"></script>
 
+  <!-- Socket.IO client (required by bridge.js for the local robot bridge) -->
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
+
   <!-- Monaco Editor (loaded async) -->
   <script>
     // Load Monaco lazily when needed
@@ -253,10 +256,12 @@
         <span id="current-file-name" style="font-weight:600;color:#1e293b;">No file open</span>
         <div style="flex:1"></div>
         <button id="new-file-btn" class="btn btn-outline btn-sm">➕ New File</button>
-        <button id="generate-python-btn" class="btn btn-outline btn-sm">🐍 Generate Python</button>
-        <button id="run-simulator-btn" class="btn btn-success btn-sm">▶ Run</button>
+        <button id="run-simulator-btn" class="btn btn-success btn-sm" title="Run program (uses simulator when bridge is not connected; runs on robot when connected)">▶ Run</button>
         <button id="stop-simulator-btn" class="btn btn-danger btn-sm">⏹ Stop</button>
+        <button id="home-robot-btn" class="btn btn-outline btn-sm" title="Move robot to home position">🏠 Home</button>
         <button id="emergency-stop-btn" class="btn btn-sm" style="background:#dc2626;color:white;font-weight:700;border:2px solid #991b1b;" title="Emergency Stop (Escape key)">🛑 E-STOP</button>
+        <div style="width:1px;background:#e2e8f0;height:20px;margin:0 2px;flex-shrink:0;"></div>
+        <button id="bridge-connect-btn" class="btn btn-outline btn-sm" title="Connect to the Local Python Bridge running on your computer to run code on a real robot">🔌 Connect to Bridge</button>
         <button id="reset-simulator-btn" class="btn btn-outline btn-sm">↺ Reset</button>
         <button id="save-btn-editor" class="btn btn-primary btn-sm" onclick="App.saveCurrentFile()">💾 Save</button>
       </div>
@@ -468,6 +473,20 @@
         </div>
 
       </div><!-- /editor-split -->
+
+      <!-- Bridge Terminal Output Panel (shown when connected to local bridge) -->
+      <div id="bridge-terminal-panel" class="hidden" style="border-top:2px solid #2563eb;background:#1e1e1e;display:flex;flex-direction:column;flex-shrink:0;height:190px;">
+        <div style="display:flex;align-items:center;gap:8px;padding:4px 12px;background:#1e293b;color:#e2e8f0;font-size:12px;font-weight:600;flex-shrink:0;">
+          <span>🖥️ Robot Terminal</span>
+          <span id="bridge-run-status" style="font-size:11px;color:#64748b;margin-left:4px;"></span>
+          <div style="flex:1;"></div>
+          <button id="bridge-stop-code-btn" class="hidden" style="background:#dc2626;color:white;border:none;padding:2px 10px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600;">⏹ Stop</button>
+          <button id="bridge-terminal-clear-btn" style="background:none;border:1px solid #475569;color:#94a3b8;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:11px;">Clear</button>
+          <button id="bridge-disconnect-btn" style="background:none;border:1px solid #dc2626;color:#fc8181;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:11px;">Disconnect</button>
+        </div>
+        <div id="bridge-output" style="flex:1;overflow-y:auto;padding:8px 14px;font-family:'Fira Code','Consolas',monospace;font-size:12px;color:#a0aec0;line-height:1.5;"></div>
+      </div><!-- /bridge-terminal-panel -->
+
     </div><!-- /view-editor -->
 
     <!-- ── REPOSITORIES VIEW ── -->
@@ -762,6 +781,7 @@ robot = DobotRobot(port='COM3')  # use your port</pre>
 <script src="js/blockly-setup.js"></script>
 <script src="js/event-sheet.js"></script>
 <script src="js/robot-simulator.js"></script>
+<script src="js/bridge.js"></script>
 <script src="js/app.js"></script>
 
 <script>
@@ -896,6 +916,11 @@ robot = DobotRobot(port='COM3')  # connect to your port</pre>
       if (typeof RobotSimulator !== 'undefined') {
         RobotSimulator.stop();
         RobotSimulator.commands.emergency_stop?.();
+      }
+      // Also stop any bridge execution
+      if (typeof LocalBridge !== 'undefined' && LocalBridge.isConnected()) {
+        LocalBridge.stopCode();
+        if (typeof App !== 'undefined') App.setBridgeRunning?.(false);
       }
       // Flash screen border red
       document.body.style.outline = '4px solid #dc2626';

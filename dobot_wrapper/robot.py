@@ -9,6 +9,7 @@ and test their programs.
 
 from __future__ import annotations
 
+import os
 import time
 import sys
 import threading
@@ -123,7 +124,13 @@ class DobotRobot:
                     self._log(f'🔌 Connecting to specified port: {port}')
                     detected_port = port
                 else:
-                    detected_port = self._detect_port()
+                    # Check if the bridge set a port via environment variable
+                    env_port = os.environ.get('DOBOT_DEFAULT_PORT', '').strip()
+                    if env_port:
+                        self._log(f'🔌 Using port from DOBOT_DEFAULT_PORT env: {env_port}')
+                        detected_port = env_port
+                    else:
+                        detected_port = self._detect_port()
                     if detected_port:
                         self._log(f'🔍 Auto-detected port: {detected_port}')
                 if detected_port:
@@ -180,6 +187,15 @@ class DobotRobot:
         if self._debug:
             self._log(f'[DEBUG] {message}')
 
+    def _log_position(self):
+        """Emit a machine-readable position line so the bridge UI can update its display."""
+        self._log(f'[POSITION] x={self._x:.2f} y={self._y:.2f} z={self._z:.2f} r={self._r:.2f}')
+
+    def _do_move(self):
+        """Send the current internal (x, y, z, r) to the physical robot and log the position."""
+        self._device.move_to(self._x, self._y, self._z, self._r, wait=True)
+        self._log_position()
+
     def _connect_to_port(self, port: str):
         """Attempt to open a connection to the Dobot on the given serial port."""
         from pydobot import Dobot
@@ -189,7 +205,17 @@ class DobotRobot:
         self._connected_port = port
         v, a = _SPEED_PRESETS[self._speed]
         self._device.speed(velocity=v, acceleration=a)
+        # Pull actual physical coordinates to prevent violent jumping on the first move.
+        try:
+            current_pose = self._device.pose()
+            self._x = current_pose[0]
+            self._y = current_pose[1]
+            self._z = current_pose[2]
+            self._r = current_pose[3]
+        except Exception as e:
+            self._log(f'⚠️ Could not pull initial coordinates: {e}')
         self._log(f'✅ Connected to Dobot on {port}')
+        self._log_position()
         if self._debug:
             self._log('[DEBUG] Connection details: pydobot Dobot instance created with verbose=True')
 
@@ -310,7 +336,7 @@ class DobotRobot:
         self._check_emergency()
         self._x, self._y, self._z, self._r = 200.0, 0.0, 150.0, 0.0
         if not self._sim and self._device:
-            self._device.move_to(self._x, self._y, self._z, self._r, wait=True)
+            self._do_move()
             self._log('✅ move_home() complete')
         else:
             self._sim_log('move_home()')
@@ -322,7 +348,7 @@ class DobotRobot:
         self._y += float(mm)
         self._check_bounds()
         if not self._sim and self._device:
-            self._device.move_to(self._x, self._y, self._z, self._r, wait=True)
+            self._do_move()
 
     def move_backward(self, mm: float = 10):
         """Move the arm backward by *mm* millimeters."""
@@ -331,7 +357,7 @@ class DobotRobot:
         self._y -= float(mm)
         self._check_bounds()
         if not self._sim and self._device:
-            self._device.move_to(self._x, self._y, self._z, self._r, wait=True)
+            self._do_move()
 
     def move_left(self, mm: float = 10):
         """Move the arm to the left by *mm* millimeters."""
@@ -340,7 +366,7 @@ class DobotRobot:
         self._x -= float(mm)
         self._check_bounds()
         if not self._sim and self._device:
-            self._device.move_to(self._x, self._y, self._z, self._r, wait=True)
+            self._do_move()
 
     def move_right(self, mm: float = 10):
         """Move the arm to the right by *mm* millimeters."""
@@ -349,7 +375,7 @@ class DobotRobot:
         self._x += float(mm)
         self._check_bounds()
         if not self._sim and self._device:
-            self._device.move_to(self._x, self._y, self._z, self._r, wait=True)
+            self._do_move()
 
     def move_up(self, mm: float = 10):
         """Raise the arm by *mm* millimeters."""
@@ -358,7 +384,7 @@ class DobotRobot:
         self._z += float(mm)
         self._check_bounds()
         if not self._sim and self._device:
-            self._device.move_to(self._x, self._y, self._z, self._r, wait=True)
+            self._do_move()
 
     def move_down(self, mm: float = 10):
         """Lower the arm by *mm* millimeters."""
@@ -367,16 +393,25 @@ class DobotRobot:
         self._z = max(self._z - float(mm), _WORKSPACE_BOUNDS['z_min'])
         self._check_bounds()
         if not self._sim and self._device:
-            self._device.move_to(self._x, self._y, self._z, self._r, wait=True)
+            self._do_move()
 
-    def move_to(self, x: float, y: float, z: float):
-        """Move the arm to exact coordinates (x, y, z in mm)."""
+    def move_to(self, x: float, y: float, z: float, r: float = None):
+        """Move the arm to exact coordinates (x, y, z in mm; r in degrees).
+
+        Args:
+            x: Target X coordinate (mm).
+            y: Target Y coordinate (mm).
+            z: Target Z coordinate (mm).
+            r: End-effector rotation (degrees). Defaults to current rotation.
+        """
         self._check_emergency()
-        self._sim_log(f'move_to({x}, {y}, {z})')
+        if r is not None:
+            self._r = float(r)
+        self._sim_log(f'move_to({x}, {y}, {z}, r={r if r is not None else self._r})')
         self._x, self._y, self._z = float(x), float(y), float(z)
         self._check_bounds()
         if not self._sim and self._device:
-            self._device.move_to(self._x, self._y, self._z, self._r, wait=True)
+            self._do_move()
 
     def rotate_left(self, degrees: float = 45):
         """Rotate the base of the arm to the left by *degrees*."""
@@ -384,7 +419,7 @@ class DobotRobot:
         self._sim_log(f'rotate_left({degrees}°)')
         self._r += float(degrees)
         if not self._sim and self._device:
-            self._device.move_to(self._x, self._y, self._z, self._r, wait=True)
+            self._do_move()
 
     def rotate_right(self, degrees: float = 45):
         """Rotate the base of the arm to the right by *degrees*."""
@@ -392,7 +427,7 @@ class DobotRobot:
         self._sim_log(f'rotate_right({degrees}°)')
         self._r -= float(degrees)
         if not self._sim and self._device:
-            self._device.move_to(self._x, self._y, self._z, self._r, wait=True)
+            self._do_move()
 
     def get_position(self) -> tuple:
         """Return the current arm position as (x, y, z, rotation)."""
@@ -438,7 +473,7 @@ class DobotRobot:
         self._z += float(dz)
         self._check_bounds()
         if not self._sim and self._device:
-            self._device.move_to(self._x, self._y, self._z, self._r, wait=True)
+            self._do_move()
 
     def move_delta_r(self, dr: float = 0):
         """
@@ -457,7 +492,7 @@ class DobotRobot:
             self._log(f'⚠️  BOUNDS WARNING: R={self._r:.1f} out of range [{b["r_min"]}, {b["r_max"]}] — clamped')
             self._r = max(b['r_min'], min(b['r_max'], self._r))
         if not self._sim and self._device:
-            self._device.move_to(self._x, self._y, self._z, self._r, wait=True)
+            self._do_move()
 
     def get_joint_angles(self) -> tuple:
         """Return the current joint angles as (j1, j2, j3, j4)."""
@@ -870,6 +905,7 @@ class DobotRobot:
                 self._r = pose[3]
                 self._log(f'📐 Position updated: X={self._x:.1f}, Y={self._y:.1f}, '
                           f'Z={self._z:.1f}, R={self._r:.1f}')
+                self._log_position()
             except Exception as exc:
                 self._log(f'⚠️  Could not read position from robot: {exc}')
         return (self._x, self._y, self._z, self._r)
