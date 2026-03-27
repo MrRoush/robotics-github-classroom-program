@@ -668,6 +668,27 @@ const App = (() => {
     out.scrollTop = out.scrollHeight;
   };
 
+  /**
+   * Parse a [POSITION] log line from the robot and update the on-screen
+   * position display with the real physical coordinates.
+   * Returns true if the line was a position update (caller should skip logging it).
+   */
+  const tryUpdatePositionDisplay = (text) => {
+    const m = text.match(/\[POSITION\]\s+x=([\d.\-]+)\s+y=([\d.\-]+)\s+z=([\d.\-]+)\s+r=([\d.\-]+)/);
+    if (!m) return false;
+    const x = Number(m[1]), y = Number(m[2]), z = Number(m[3]), r = Number(m[4]);
+    const el = document.getElementById('sim-position-display');
+    if (el) {
+      const vals = el.querySelectorAll('.pos-value');
+      const fmt = (v) => Math.round(v * 10) / 10;
+      if (vals[0]) vals[0].textContent = fmt(x);
+      if (vals[1]) vals[1].textContent = fmt(y);
+      if (vals[2]) vals[2].textContent = fmt(z);
+      if (vals[3]) vals[3].textContent = fmt(r);
+    }
+    return true;
+  };
+
   /** Update the bridge connect button and terminal panel to reflect the current connection state. */
   const updateBridgeUI = (connected) => {
     const connectBtn = document.getElementById('bridge-connect-btn');
@@ -734,8 +755,11 @@ const App = (() => {
         }
       },
       onOutput: ({ stream, data }) => {
+        const text = data.replace(/\n$/, '');
+        // Intercept machine-readable position updates and refresh the display.
+        if (tryUpdatePositionDisplay(text)) return;
         const colors = { stdout: '#e2e8f0', stderr: '#fc8181', info: '#63b3ed' };
-        bridgeLog(data.replace(/\n$/, ''), colors[stream] || '#a0aec0');
+        bridgeLog(text, colors[stream] || '#a0aec0');
       },
       onDone: ({ returncode }) => {
         setBridgeRunning(false);

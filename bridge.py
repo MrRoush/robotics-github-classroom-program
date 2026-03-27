@@ -121,6 +121,10 @@ def on_run_code(data):
     env = os.environ.copy()
     env['DOBOT_DEFAULT_PORT'] = port
 
+    # Force UTF-8 encoding so emojis and special characters print correctly on
+    # Windows (which otherwise defaults to cp1252).
+    env['PYTHONIOENCODING'] = 'utf-8'
+
     # Prepend the bridge directory so dobot_wrapper is importable.
     existing = env.get('PYTHONPATH', '')
     env['PYTHONPATH'] = bridge_dir + (os.pathsep + existing if existing else '')
