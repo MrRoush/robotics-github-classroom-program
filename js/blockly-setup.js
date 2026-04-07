@@ -1593,7 +1593,7 @@ const BlocklySetup = (() => {
     P['vex_event_receive'] = (b) => {
       const msg = b.getFieldValue('MSG');
       const body = P.statementToCode(b, 'DO') || P.INDENT + 'pass\n';
-      return `def on_${msg.replace(/\\W/g, '_')}():\n${body}\n`;
+      return `def on_${msg.replace(/\W/g, '_')}():\n${body}\n`;
     };
     P['vex_screen_event'] = (b) => {
       const action = b.getFieldValue('ACTION');
