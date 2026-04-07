@@ -121,49 +121,36 @@ Supported VEX file types: `.vex`, `.v5python`, `.py`, `.txt`, `.xml`
 
 The visual editor generates Python code you can run on a real Dobot in two ways:
 
-### Option A — Local Bridge (Recommended): Run from the Browser
+### Option A — One-Click Launcher (Recommended)
 
-The **Local Bridge** lets you click a button in the web IDE and have code execute on the robot immediately — no terminal required.
+The easiest way to start the bridge — **no terminal or admin rights required**.
 
-#### Step 1 — Install bridge dependencies
-```bash
-pip install -r requirements-bridge.txt
-# or manually:
-pip install flask flask-socketio pydobot pyserial
-```
+1. In the project folder, **double-click** the launcher for your OS:
+   - **Windows:** `start_bridge.bat`
+   - **macOS / Linux:** `start_bridge.sh`
+2. The launcher automatically finds Python, sets up a local virtual environment, installs dependencies, and starts the bridge.
+3. You should see:
+   ```
+   ====================================================
+     Robotics Classroom — Local Bridge
+     Listening on  http://127.0.0.1:5000
+     Press Ctrl+C to stop
+   ====================================================
+   ```
+4. In the web IDE, click **🔌 Connect to Bridge** → the button turns green when connected.
+5. Write or generate your Python code, then click **▶ Run on Robot**.
 
-#### Step 2 — Start the bridge
+> 🏫 **School computers:** The launcher creates a virtual environment inside the project folder — no admin privileges are needed. If Python is not installed, ask your teacher or IT admin to install [Python 3.8+](https://www.python.org/downloads/).
+
+### Option B — Run `bridge.py` Directly
+
+If you prefer using a terminal:
 ```bash
 python bridge.py
 ```
-You should see:
-```
-====================================================
-  Robotics Classroom — Local Bridge
-  Listening on  http://127.0.0.1:5000
-  Press Ctrl+C to stop
-====================================================
-```
+The bridge **auto-installs** missing packages (Flask, etc.) on first run — no separate `pip install` step is needed.
 
-#### Step 3 — Connect from the IDE
-1. Open the IDE and navigate to the **Editor** view.
-2. Click **🔌 Connect to Bridge** in the toolbar.
-3. The button turns green when connected.
-4. Write or generate your Python code.
-5. Click **🤖 Run on Robot** — output streams live into the **Robot Terminal** panel.
-
-> **⏹ Stop:** Click the **Stop** button in the terminal header to terminate the program at any time.
-
-#### Browser compatibility note
-The bridge connects via `ws://127.0.0.1:5000` even when the IDE is served from an HTTPS host like GitHub Pages. Modern browsers permit this because `127.0.0.1` is treated as a *secure context*:
-
-- **Chrome 94+ / Edge**: Allowed. The bridge also sends `Access-Control-Allow-Private-Network: true` to satisfy Chrome's Private Network Access preflight.
-- **Firefox**: Allowed — no special action needed.
-- **Safari**: May block. Enable **Develop → Disable Cross-Origin Restrictions** in Safari's menu bar, or open the IDE locally over HTTP.
-
----
-
-### Option B — Manual: Download and Run in Terminal
+### Option C — Manual: Download and Run in Terminal
 
 Save your `.py` file from the editor and run it:
 ```bash
@@ -186,7 +173,9 @@ python my_program.py
 ```
 robotics-github-classroom-program/
 ├── index.html              ← Open this in your browser!
-├── bridge.py               ← Local Python bridge server (run to control real robot)
+├── bridge.py               ← Local Python bridge server (auto-installs deps)
+├── start_bridge.bat        ← One-click launcher for Windows (double-click!)
+├── start_bridge.sh         ← One-click launcher for macOS/Linux
 ├── requirements-bridge.txt ← Python deps for bridge.py
 ├── css/
 │   └── styles.css          ← All styling
@@ -228,9 +217,11 @@ robotics-github-classroom-program/
 | Can't see assignments | Make sure you're a member of the GitHub Classroom organization |
 | Monaco editor not loading | Check internet connection; a fallback text editor will be used instead |
 | File not saving | Make sure your token has `repo` (write) permission |
-| "Bridge Not Found" | Make sure `python bridge.py` is running on your computer |
+| "Bridge Not Found" | Double-click `start_bridge.bat` (Windows) or `start_bridge.sh` (macOS/Linux) to start the bridge |
+| "Python was not found" | Install [Python 3.8+](https://www.python.org/downloads/) — check "Add Python to PATH" during setup |
 | Bridge connects but robot doesn't move | Check the COM port in Settings matches your robot's actual port |
 | Bridge works on Chrome but not Safari | Enable Develop → Disable Cross-Origin Restrictions in Safari |
+| pip install gives "Access Denied" | The launcher uses a local venv (no admin needed). If it still fails, ask IT to run the launcher once |
 
 ---
 

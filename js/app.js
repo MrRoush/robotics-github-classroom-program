@@ -745,9 +745,9 @@ const App = (() => {
             bridgeLog(`[bridge] Connection failed: ${error}`, '#fc8181');
             toast(
               'Bridge Not Found',
-              'Make sure bridge.py is running on your computer (python bridge.py).',
+              'Double-click start_bridge.bat (Windows) or start_bridge.sh (Mac/Linux) to start. <a href="#" onclick="showBridgeSetupGuide();return false;" style="color:#93c5fd;text-decoration:underline;">Setup Guide</a>',
               'error',
-              6000
+              8000
             );
           } else {
             bridgeLog('[bridge] Disconnected.', '#f6ad55');

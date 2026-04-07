@@ -262,6 +262,7 @@
         <button id="emergency-stop-btn" class="btn btn-sm" style="background:#dc2626;color:white;font-weight:700;border:2px solid #991b1b;" title="Emergency Stop (Escape key)">🛑 E-STOP</button>
         <div style="width:1px;background:#e2e8f0;height:20px;margin:0 2px;flex-shrink:0;"></div>
         <button id="bridge-connect-btn" class="btn btn-outline btn-sm" title="Connect to the Local Python Bridge running on your computer to run code on a real robot">🔌 Connect to Bridge</button>
+        <button class="btn btn-ghost btn-sm" onclick="showBridgeSetupGuide()" title="How to set up the Python Bridge" style="font-size:11px;padding:2px 6px;">❓</button>
         <button id="reset-simulator-btn" class="btn btn-outline btn-sm">↺ Reset</button>
         <button id="save-btn-editor" class="btn btn-primary btn-sm" onclick="App.saveCurrentFile()">💾 Save</button>
       </div>
@@ -1043,6 +1044,72 @@ robot = DobotRobot(port='COM3')  # connect to your port</pre>
       overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
       document.body.appendChild(overlay);
     };
+    // ── Bridge Setup Guide Modal ──
+    window.showBridgeSetupGuide = () => {
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.innerHTML = `
+        <div class="modal" style="max-width:640px;">
+          <div class="modal-header">
+            <div class="modal-title">🔌 Bridge Setup Guide</div>
+            <button class="btn btn-ghost btn-icon" onclick="this.closest('.modal-overlay').remove()">✕</button>
+          </div>
+          <div class="modal-body" style="font-size:13px;line-height:1.7;max-height:70vh;overflow-y:auto;">
+            <div style="background:#eff6ff;border-radius:8px;padding:14px;margin-bottom:16px;">
+              <div style="font-weight:700;margin-bottom:6px;">✨ Easiest Method — One-Click Launcher</div>
+              <p style="margin:0 0 8px;">
+                In the project folder, <strong>double-click</strong> one of these files:
+              </p>
+              <ul style="padding-left:20px;margin:0 0 8px;">
+                <li><strong>Windows:</strong> <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;">start_bridge.bat</code></li>
+                <li><strong>macOS / Linux:</strong> <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;">start_bridge.sh</code></li>
+              </ul>
+              <p style="margin:0;font-size:12px;color:#475569;">
+                The launcher automatically installs everything needed and starts the bridge — no terminal commands required.
+              </p>
+            </div>
+
+            <div style="background:#f0fdf4;border-radius:8px;padding:14px;margin-bottom:16px;">
+              <div style="font-weight:700;margin-bottom:6px;">🐍 Alternative — Run Directly</div>
+              <p style="margin:0 0 8px;">
+                If you prefer using a terminal, just run:
+              </p>
+              <pre style="background:#1e1e1e;color:#68d391;padding:10px;border-radius:6px;font-size:12px;margin:0 0 8px;">python bridge.py</pre>
+              <p style="margin:0;font-size:12px;color:#475569;">
+                The bridge auto-installs missing packages on first run — no separate <code>pip install</code> step needed.
+              </p>
+            </div>
+
+            <div style="background:#fef3c7;border-radius:8px;padding:14px;margin-bottom:16px;">
+              <div style="font-weight:700;margin-bottom:6px;">🏫 School / Restricted Computer Tips</div>
+              <ul style="padding-left:20px;margin:0;">
+                <li>The launcher creates a <em>local virtual environment</em> inside the project folder — <strong>no admin rights needed</strong>.</li>
+                <li>If <code>bridge.py</code> cannot create a virtual environment, it falls back to <code>pip install --user</code>, which also works without admin privileges.</li>
+                <li>Python 3.8+ must be installed on the computer. If Python is missing, ask your teacher or IT administrator to install it from <a href="https://www.python.org/downloads/" target="_blank" rel="noopener" style="color:#2563eb;text-decoration:underline;">python.org</a>.</li>
+                <li>If <code>.bat</code> files are blocked by policy, your teacher can run the launcher once on each computer, or ask IT to whitelist the project folder.</li>
+              </ul>
+            </div>
+
+            <div style="background:#fef2f2;border-radius:8px;padding:14px;margin-bottom:16px;">
+              <div style="font-weight:700;margin-bottom:6px;">🔧 Troubleshooting</div>
+              <ul style="padding-left:20px;margin:0;">
+                <li><strong>"Python was not found"</strong> — Install Python 3.8+ and make sure "Add Python to PATH" is checked during installation.</li>
+                <li><strong>"Access Denied" during install</strong> — The launcher already uses <code>--user</code> mode. If it still fails, ask IT to run the launcher once with elevated privileges.</li>
+                <li><strong>Bridge starts but IDE cannot connect</strong> — Check that the bridge shows "Listening on http://127.0.0.1:5000". Some antivirus or firewall software may block localhost connections — add an exception for Python.</li>
+                <li><strong>Safari blocks the connection</strong> — Enable <em>Develop → Disable Cross-Origin Restrictions</em> in Safari, or use Chrome/Edge instead.</li>
+              </ul>
+            </div>
+
+            <div style="text-align:center;padding-top:4px;">
+              <button class="btn btn-primary btn-sm" onclick="this.closest('.modal-overlay').remove()">Got it!</button>
+            </div>
+          </div>
+        </div>
+      `;
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+      document.body.appendChild(overlay);
+    };
+
   });
 </script>
 
