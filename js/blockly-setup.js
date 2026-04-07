@@ -19,7 +19,33 @@ const BlocklySetup = (() => {
     control:   '#0891b2',
     math:      '#4f46e5',
     vex:       '#f59e0b',
+    vexScreen: '#2563eb',
+    vexEvents: '#16a34a',
   };
+
+  /* ---- VEX V5 port dropdown helpers ---- */
+  const VEX_SMART_PORTS = [
+    ['PORT1','PORT1'],['PORT2','PORT2'],['PORT3','PORT3'],
+    ['PORT4','PORT4'],['PORT5','PORT5'],['PORT6','PORT6'],
+    ['PORT7','PORT7'],['PORT8','PORT8'],['PORT9','PORT9'],
+    ['PORT10','PORT10'],['PORT11','PORT11'],['PORT12','PORT12'],
+    ['PORT13','PORT13'],['PORT14','PORT14'],['PORT15','PORT15'],
+    ['PORT16','PORT16'],['PORT17','PORT17'],['PORT18','PORT18'],
+    ['PORT19','PORT19'],['PORT20','PORT20'],['PORT21','PORT21'],
+  ];
+
+  const VEX_THREE_WIRE_PORTS = [
+    ['A','A'],['B','B'],['C','C'],['D','D'],
+    ['E','E'],['F','F'],['G','G'],['H','H'],
+  ];
+
+  const VEX_COLORS = [
+    ['Black','Color.BLACK'],['White','Color.WHITE'],
+    ['Red','Color.RED'],['Green','Color.GREEN'],
+    ['Blue','Color.BLUE'],['Yellow','Color.YELLOW'],
+    ['Orange','Color.ORANGE'],['Purple','Color.PURPLE'],
+    ['Cyan','Color.CYAN'],['Transparent','Color.TRANSPARENT'],
+  ];
 
   /* ---- Register all custom Dobot blocks ---- */
   const defineBlocks = () => {
@@ -699,12 +725,7 @@ const BlocklySetup = (() => {
       init() {
         this.appendDummyInput()
           .appendField('⚙️ VEX Motor')
-          .appendField(new Blockly.FieldDropdown([
-            ['PORT1','PORT1'],['PORT2','PORT2'],['PORT3','PORT3'],
-            ['PORT4','PORT4'],['PORT5','PORT5'],['PORT6','PORT6'],
-            ['PORT7','PORT7'],['PORT8','PORT8'],['PORT9','PORT9'],
-            ['PORT10','PORT10'],['PORT11','PORT11'],
-          ]), 'PORT')
+          .appendField(new Blockly.FieldDropdown(VEX_SMART_PORTS), 'PORT')
           .appendField('Spin')
           .appendField(new Blockly.FieldDropdown([
             ['Forward', 'FORWARD'],
@@ -726,12 +747,7 @@ const BlocklySetup = (() => {
       init() {
         this.appendDummyInput()
           .appendField('⏹️ VEX Motor')
-          .appendField(new Blockly.FieldDropdown([
-            ['PORT1','PORT1'],['PORT2','PORT2'],['PORT3','PORT3'],
-            ['PORT4','PORT4'],['PORT5','PORT5'],['PORT6','PORT6'],
-            ['PORT7','PORT7'],['PORT8','PORT8'],['PORT9','PORT9'],
-            ['PORT10','PORT10'],['PORT11','PORT11'],
-          ]), 'PORT')
+          .appendField(new Blockly.FieldDropdown(VEX_SMART_PORTS), 'PORT')
           .appendField('Stop')
           .appendField(new Blockly.FieldDropdown([
             ['Brake', 'BRAKE'],
@@ -749,12 +765,7 @@ const BlocklySetup = (() => {
       init() {
         this.appendDummyInput()
           .appendField('⚙️ VEX Motor')
-          .appendField(new Blockly.FieldDropdown([
-            ['PORT1','PORT1'],['PORT2','PORT2'],['PORT3','PORT3'],
-            ['PORT4','PORT4'],['PORT5','PORT5'],['PORT6','PORT6'],
-            ['PORT7','PORT7'],['PORT8','PORT8'],['PORT9','PORT9'],
-            ['PORT10','PORT10'],['PORT11','PORT11'],
-          ]), 'PORT')
+          .appendField(new Blockly.FieldDropdown(VEX_SMART_PORTS), 'PORT')
           .appendField('Spin')
           .appendField(new Blockly.FieldDropdown([
             ['Forward', 'FORWARD'],
@@ -781,11 +792,7 @@ const BlocklySetup = (() => {
       init() {
         this.appendDummyInput()
           .appendField('📏 VEX Distance Sensor')
-          .appendField(new Blockly.FieldDropdown([
-            ['PORT1','PORT1'],['PORT2','PORT2'],['PORT3','PORT3'],
-            ['PORT4','PORT4'],['PORT5','PORT5'],['PORT6','PORT6'],
-            ['PORT7','PORT7'],['PORT8','PORT8'],
-          ]), 'PORT');
+          .appendField(new Blockly.FieldDropdown(VEX_SMART_PORTS), 'PORT');
         this.setOutput(true, 'Number');
         this.setColour(COLORS.vex);
         this.setTooltip('Read the distance value (mm) from the VEX V5 Distance Sensor on the selected port.');
@@ -796,11 +803,7 @@ const BlocklySetup = (() => {
       init() {
         this.appendDummyInput()
           .appendField('🎨 VEX Color Sensor')
-          .appendField(new Blockly.FieldDropdown([
-            ['PORT1','PORT1'],['PORT2','PORT2'],['PORT3','PORT3'],
-            ['PORT4','PORT4'],['PORT5','PORT5'],['PORT6','PORT6'],
-            ['PORT7','PORT7'],['PORT8','PORT8'],
-          ]), 'PORT');
+          .appendField(new Blockly.FieldDropdown(VEX_SMART_PORTS), 'PORT');
         this.setOutput(true, 'String');
         this.setColour(COLORS.vex);
         this.setTooltip('Read the detected color from the VEX V5 Color Sensor on the selected port.');
@@ -811,15 +814,11 @@ const BlocklySetup = (() => {
       init() {
         this.appendDummyInput()
           .appendField('🔘 VEX Bumper Switch')
-          .appendField(new Blockly.FieldDropdown([
-            ['PORT1','PORT1'],['PORT2','PORT2'],['PORT3','PORT3'],
-            ['PORT4','PORT4'],['PORT5','PORT5'],['PORT6','PORT6'],
-            ['PORT7','PORT7'],['PORT8','PORT8'],
-          ]), 'PORT')
+          .appendField(new Blockly.FieldDropdown(VEX_THREE_WIRE_PORTS), 'PORT')
           .appendField('pressed?');
         this.setOutput(true, 'Boolean');
         this.setColour(COLORS.vex);
-        this.setTooltip('Returns True if the VEX V5 Bumper Switch on the selected port is pressed.');
+        this.setTooltip('Returns True if the VEX V5 Bumper Switch on the selected 3-wire port is pressed.');
       }
     };
 
@@ -827,11 +826,7 @@ const BlocklySetup = (() => {
       init() {
         this.appendDummyInput()
           .appendField('🔄 VEX Gyro Heading')
-          .appendField(new Blockly.FieldDropdown([
-            ['PORT1','PORT1'],['PORT2','PORT2'],['PORT3','PORT3'],
-            ['PORT4','PORT4'],['PORT5','PORT5'],['PORT6','PORT6'],
-            ['PORT7','PORT7'],['PORT8','PORT8'],
-          ]), 'PORT');
+          .appendField(new Blockly.FieldDropdown(VEX_SMART_PORTS), 'PORT');
         this.setOutput(true, 'Number');
         this.setColour(COLORS.vex);
         this.setTooltip('Read the current heading (0–360°) from the VEX V5 Gyro/Inertial Sensor on the selected port.');
@@ -898,6 +893,416 @@ const BlocklySetup = (() => {
         this.setTooltip('Read the position (-100 to 100) of a VEX V5 Controller joystick axis.');
       }
     };
+
+    // ── VEX V5 SCREEN BLOCKS ───────────────────────────────────────────
+
+    Blockly.Blocks['vex_screen_set_cursor'] = {
+      init() {
+        this.appendValueInput('ROW').setCheck('Number').appendField('🖥️ Set Cursor Row');
+        this.appendValueInput('COL').setCheck('Number').appendField('Column');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.vexScreen);
+        this.setTooltip('Set the cursor position on the VEX V5 Brain screen.');
+      }
+    };
+
+    Blockly.Blocks['vex_screen_next_row'] = {
+      init() {
+        this.appendDummyInput().appendField('🖥️ Next Row on Screen');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.vexScreen);
+        this.setTooltip('Move the cursor to the next row on the Brain screen.');
+      }
+    };
+
+    Blockly.Blocks['vex_screen_clear'] = {
+      init() {
+        this.appendDummyInput().appendField('🖥️ Clear Screen');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.vexScreen);
+        this.setTooltip('Clear the entire VEX V5 Brain screen.');
+      }
+    };
+
+    Blockly.Blocks['vex_screen_clear_row'] = {
+      init() {
+        this.appendValueInput('ROW').setCheck('Number').appendField('🖥️ Clear Row');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.vexScreen);
+        this.setTooltip('Clear a specific row on the VEX V5 Brain screen.');
+      }
+    };
+
+    Blockly.Blocks['vex_screen_set_font'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('🖥️ Set Font')
+          .appendField(new Blockly.FieldDropdown([
+            ['Mono 12','FontType.MONO12'],['Mono 15','FontType.MONO15'],
+            ['Mono 20','FontType.MONO20'],['Mono 30','FontType.MONO30'],
+            ['Mono 40','FontType.MONO40'],['Mono 60','FontType.MONO60'],
+            ['Prop 20','FontType.PROP20'],['Prop 30','FontType.PROP30'],
+            ['Prop 40','FontType.PROP40'],['Prop 60','FontType.PROP60'],
+          ]), 'FONT');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.vexScreen);
+        this.setTooltip('Set the font for text on the VEX V5 Brain screen.');
+      }
+    };
+
+    Blockly.Blocks['vex_screen_set_pen_color'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('🖥️ Set Pen Color')
+          .appendField(new Blockly.FieldDropdown(VEX_COLORS), 'COLOR');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.vexScreen);
+        this.setTooltip('Set the pen (outline/text) color on the VEX V5 Brain screen.');
+      }
+    };
+
+    Blockly.Blocks['vex_screen_set_fill_color'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('🖥️ Set Fill Color')
+          .appendField(new Blockly.FieldDropdown(VEX_COLORS), 'COLOR');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.vexScreen);
+        this.setTooltip('Set the fill color for shapes on the VEX V5 Brain screen.');
+      }
+    };
+
+    Blockly.Blocks['vex_screen_set_pen_width'] = {
+      init() {
+        this.appendValueInput('WIDTH').setCheck('Number').appendField('🖥️ Set Pen Width');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.vexScreen);
+        this.setTooltip('Set the pen width for drawing on the VEX V5 Brain screen.');
+      }
+    };
+
+    Blockly.Blocks['vex_screen_draw_pixel'] = {
+      init() {
+        this.appendValueInput('X').setCheck('Number').appendField('🖥️ Draw Pixel X');
+        this.appendValueInput('Y').setCheck('Number').appendField('Y');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.vexScreen);
+        this.setTooltip('Draw a single pixel at (x, y) on the VEX V5 Brain screen.');
+      }
+    };
+
+    Blockly.Blocks['vex_screen_draw_line'] = {
+      init() {
+        this.appendValueInput('X1').setCheck('Number').appendField('🖥️ Draw Line X1');
+        this.appendValueInput('Y1').setCheck('Number').appendField('Y1');
+        this.appendValueInput('X2').setCheck('Number').appendField('X2');
+        this.appendValueInput('Y2').setCheck('Number').appendField('Y2');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.vexScreen);
+        this.setTooltip('Draw a line from (x1,y1) to (x2,y2) on the VEX V5 Brain screen.');
+      }
+    };
+
+    Blockly.Blocks['vex_screen_draw_rect'] = {
+      init() {
+        this.appendValueInput('X').setCheck('Number').appendField('🖥️ Draw Rect X');
+        this.appendValueInput('Y').setCheck('Number').appendField('Y');
+        this.appendValueInput('W').setCheck('Number').appendField('W');
+        this.appendValueInput('H').setCheck('Number').appendField('H');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.vexScreen);
+        this.setTooltip('Draw a rectangle at (x, y) with the given width and height on the Brain screen.');
+      }
+    };
+
+    Blockly.Blocks['vex_screen_draw_circle'] = {
+      init() {
+        this.appendValueInput('X').setCheck('Number').appendField('🖥️ Draw Circle X');
+        this.appendValueInput('Y').setCheck('Number').appendField('Y');
+        this.appendValueInput('R').setCheck('Number').appendField('Radius');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.vexScreen);
+        this.setTooltip('Draw a circle at (x, y) with the given radius on the Brain screen.');
+      }
+    };
+
+    Blockly.Blocks['vex_screen_pressing'] = {
+      init() {
+        this.appendDummyInput().appendField('🖥️ Screen Pressed?');
+        this.setOutput(true, 'Boolean');
+        this.setColour(COLORS.vexScreen);
+        this.setTooltip('Returns True if the VEX V5 Brain touch screen is currently being pressed.');
+      }
+    };
+
+    Blockly.Blocks['vex_screen_x_position'] = {
+      init() {
+        this.appendDummyInput().appendField('🖥️ Screen X Position');
+        this.setOutput(true, 'Number');
+        this.setColour(COLORS.vexScreen);
+        this.setTooltip('Returns the X coordinate of the last touch on the Brain screen.');
+      }
+    };
+
+    Blockly.Blocks['vex_screen_y_position'] = {
+      init() {
+        this.appendDummyInput().appendField('🖥️ Screen Y Position');
+        this.setOutput(true, 'Number');
+        this.setColour(COLORS.vexScreen);
+        this.setTooltip('Returns the Y coordinate of the last touch on the Brain screen.');
+      }
+    };
+
+    Blockly.Blocks['vex_screen_set_precision'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('🖥️ Set Print Precision')
+          .appendField(new Blockly.FieldDropdown([
+            ['0','0'],['1','1'],['2','2'],['3','3'],['4','4'],['5','5'],
+          ]), 'DIGITS');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.vexScreen);
+        this.setTooltip('Set the number of decimal places shown when printing numbers on the Brain screen.');
+      }
+    };
+
+    // ── VEX V5 SENSING / BRAIN BLOCKS ──────────────────────────────────
+
+    Blockly.Blocks['vex_brain_battery'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('🔋 Battery')
+          .appendField(new Blockly.FieldDropdown([
+            ['Voltage (volts)', 'voltage'],
+            ['Current (amps)', 'current'],
+            ['Capacity (%)', 'capacity'],
+          ]), 'PROP');
+        this.setOutput(true, 'Number');
+        this.setColour(COLORS.sensor);
+        this.setTooltip('Read a VEX V5 Brain battery property.');
+      }
+    };
+
+    Blockly.Blocks['vex_sensor_range_found'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('📡 Range Finder')
+          .appendField(new Blockly.FieldDropdown(VEX_THREE_WIRE_PORTS), 'PORT')
+          .appendField('found object?');
+        this.setOutput(true, 'Boolean');
+        this.setColour(COLORS.sensor);
+        this.setTooltip('Returns True if the 3-wire Range Finder (sonar) detects an object.');
+      }
+    };
+
+    Blockly.Blocks['vex_sensor_range_distance'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('📡 Range Finder')
+          .appendField(new Blockly.FieldDropdown(VEX_THREE_WIRE_PORTS), 'PORT')
+          .appendField('distance')
+          .appendField(new Blockly.FieldDropdown([['mm','MM'],['inches','INCHES']]), 'UNITS');
+        this.setOutput(true, 'Number');
+        this.setColour(COLORS.sensor);
+        this.setTooltip('Read distance from the 3-wire Range Finder (sonar sensor).');
+      }
+    };
+
+    // ── VEX V5 CONSOLE BLOCKS ──────────────────────────────────────────
+
+    Blockly.Blocks['vex_console_print'] = {
+      init() {
+        this.appendValueInput('TEXT')
+          .setCheck('String')
+          .appendField('📋 Console Print');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.io);
+        this.setTooltip('Print a message to the console / terminal output.');
+      }
+    };
+
+    Blockly.Blocks['vex_console_clear'] = {
+      init() {
+        this.appendDummyInput().appendField('📋 Clear Console');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.io);
+        this.setTooltip('Clear all rows on the console / terminal output.');
+      }
+    };
+
+    // ── VEX V5 TIMER BLOCKS ───────────────────────────────────────────
+
+    Blockly.Blocks['vex_timer_reset'] = {
+      init() {
+        this.appendDummyInput().appendField('⏱️ Reset Timer');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.control);
+        this.setTooltip('Reset the VEX V5 Brain timer to zero.');
+      }
+    };
+
+    Blockly.Blocks['vex_timer_value'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('⏱️ Timer')
+          .appendField(new Blockly.FieldDropdown([
+            ['seconds', 'SECONDS'],
+            ['milliseconds', 'MSEC'],
+          ]), 'UNITS');
+        this.setOutput(true, 'Number');
+        this.setColour(COLORS.control);
+        this.setTooltip('Get the current VEX V5 Brain timer value.');
+      }
+    };
+
+    // ── VEX V5 EVENT BLOCKS ────────────────────────────────────────────
+
+    Blockly.Blocks['vex_event_started'] = {
+      init() {
+        this.appendDummyInput().appendField('🚩 When Started');
+        this.appendStatementInput('DO');
+        this.setColour(COLORS.vexEvents);
+        this.setTooltip('Code inside runs when the program starts.');
+      }
+    };
+
+    Blockly.Blocks['vex_event_autonomous'] = {
+      init() {
+        this.appendDummyInput().appendField('🤖 When Autonomous');
+        this.appendStatementInput('DO');
+        this.setColour(COLORS.vexEvents);
+        this.setTooltip('Code inside runs during the Autonomous period of a VEX competition.');
+      }
+    };
+
+    Blockly.Blocks['vex_event_driver'] = {
+      init() {
+        this.appendDummyInput().appendField('🎮 When Driver Control');
+        this.appendStatementInput('DO');
+        this.setColour(COLORS.vexEvents);
+        this.setTooltip('Code inside runs during the Driver Control period of a VEX competition.');
+      }
+    };
+
+    Blockly.Blocks['vex_event_broadcast'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('📢 Broadcast')
+          .appendField(new Blockly.FieldTextInput('message1'), 'MSG');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.vexEvents);
+        this.setTooltip('Broadcast a named event message.');
+      }
+    };
+
+    Blockly.Blocks['vex_event_broadcast_wait'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('📢 Broadcast')
+          .appendField(new Blockly.FieldTextInput('message1'), 'MSG')
+          .appendField('and wait');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.vexEvents);
+        this.setTooltip('Broadcast a named event message and wait for all listeners to finish.');
+      }
+    };
+
+    Blockly.Blocks['vex_event_receive'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('📨 When I Receive')
+          .appendField(new Blockly.FieldTextInput('message1'), 'MSG');
+        this.appendStatementInput('DO');
+        this.setColour(COLORS.vexEvents);
+        this.setTooltip('Runs the enclosed code when the named broadcast message is received.');
+      }
+    };
+
+    Blockly.Blocks['vex_screen_event'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('🖥️ When Screen')
+          .appendField(new Blockly.FieldDropdown([
+            ['pressed','PRESSED'],['released','RELEASED'],
+          ]), 'ACTION');
+        this.appendStatementInput('DO');
+        this.setColour(COLORS.vexScreen);
+        this.setTooltip('Runs the enclosed code when the Brain screen is pressed or released.');
+      }
+    };
+
+    Blockly.Blocks['vex_bumper_event'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('🔘 When Bumper')
+          .appendField(new Blockly.FieldDropdown(VEX_THREE_WIRE_PORTS), 'PORT')
+          .appendField(new Blockly.FieldDropdown([
+            ['pressed','PRESSED'],['released','RELEASED'],
+          ]), 'ACTION');
+        this.appendStatementInput('DO');
+        this.setColour(COLORS.sensor);
+        this.setTooltip('Runs the enclosed code when the Bumper Switch is pressed or released.');
+      }
+    };
+
+    Blockly.Blocks['vex_wait_until'] = {
+      init() {
+        this.appendValueInput('COND').setCheck('Boolean').appendField('⏳ Wait Until');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.control);
+        this.setTooltip('Pause the program until the condition becomes true.');
+      }
+    };
+
+    Blockly.Blocks['vex_stop_project'] = {
+      init() {
+        this.appendDummyInput().appendField('🛑 Stop Project');
+        this.setPreviousStatement(true, null);
+        this.setColour(COLORS.control);
+        this.setTooltip('Stop the VEX V5 program immediately.');
+      }
+    };
+
+    Blockly.Blocks['vex_comment'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('💬')
+          .appendField(new Blockly.FieldTextInput('Write a comment here...'), 'TEXT');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#94a3b8');
+        this.setTooltip('A comment block — this text is not executed as code.');
+      }
+    };
+
   };  // end defineBlocks
 
 
@@ -1051,7 +1456,7 @@ const BlocklySetup = (() => {
     };
     P['vex_sensor_bumper'] = (b) => {
       const port = b.getFieldValue('PORT');
-      return [`Bumper(Ports.${port}).pressing()`, P.ORDER_FUNCTION_CALL];
+      return [`Bumper(brain.three_wire_port.${port.toLowerCase()}).pressing()`, P.ORDER_FUNCTION_CALL];
     };
     P['vex_sensor_gyro'] = (b) => {
       const port = b.getFieldValue('PORT');
@@ -1072,6 +1477,147 @@ const BlocklySetup = (() => {
     P['vex_controller_axis'] = (b) => {
       const axis = b.getFieldValue('AXIS');
       return [`controller.${axis}.position()`, P.ORDER_FUNCTION_CALL];
+    };
+
+    // ── VEX V5 Screen generators ────────────────────────────────────────
+    P['vex_screen_set_cursor'] = (b) => {
+      const row = P.valueToCode(b, 'ROW', P.ORDER_NONE) || 1;
+      const col = P.valueToCode(b, 'COL', P.ORDER_NONE) || 1;
+      return `brain.screen.set_cursor(${row}, ${col})\n`;
+    };
+    P['vex_screen_next_row'] = () => 'brain.screen.next_row()\n';
+    P['vex_screen_clear'] = () => 'brain.screen.clear_screen()\n';
+    P['vex_screen_clear_row'] = (b) => {
+      const row = P.valueToCode(b, 'ROW', P.ORDER_NONE) || 1;
+      return `brain.screen.clear_row(${row})\n`;
+    };
+    P['vex_screen_set_font'] = (b) => {
+      const font = b.getFieldValue('FONT');
+      return `brain.screen.set_font(${font})\n`;
+    };
+    P['vex_screen_set_pen_color'] = (b) => {
+      const color = b.getFieldValue('COLOR');
+      return `brain.screen.set_pen_color(${color})\n`;
+    };
+    P['vex_screen_set_fill_color'] = (b) => {
+      const color = b.getFieldValue('COLOR');
+      return `brain.screen.set_fill_color(${color})\n`;
+    };
+    P['vex_screen_set_pen_width'] = (b) => {
+      const w = P.valueToCode(b, 'WIDTH', P.ORDER_NONE) || 1;
+      return `brain.screen.set_pen_width(${w})\n`;
+    };
+    P['vex_screen_draw_pixel'] = (b) => {
+      const x = P.valueToCode(b, 'X', P.ORDER_NONE) || 0;
+      const y = P.valueToCode(b, 'Y', P.ORDER_NONE) || 0;
+      return `brain.screen.draw_pixel(${x}, ${y})\n`;
+    };
+    P['vex_screen_draw_line'] = (b) => {
+      const x1 = P.valueToCode(b, 'X1', P.ORDER_NONE) || 0;
+      const y1 = P.valueToCode(b, 'Y1', P.ORDER_NONE) || 0;
+      const x2 = P.valueToCode(b, 'X2', P.ORDER_NONE) || 100;
+      const y2 = P.valueToCode(b, 'Y2', P.ORDER_NONE) || 100;
+      return `brain.screen.draw_line(${x1}, ${y1}, ${x2}, ${y2})\n`;
+    };
+    P['vex_screen_draw_rect'] = (b) => {
+      const x = P.valueToCode(b, 'X', P.ORDER_NONE) || 0;
+      const y = P.valueToCode(b, 'Y', P.ORDER_NONE) || 0;
+      const w = P.valueToCode(b, 'W', P.ORDER_NONE) || 100;
+      const h = P.valueToCode(b, 'H', P.ORDER_NONE) || 50;
+      return `brain.screen.draw_rectangle(${x}, ${y}, ${w}, ${h})\n`;
+    };
+    P['vex_screen_draw_circle'] = (b) => {
+      const x = P.valueToCode(b, 'X', P.ORDER_NONE) || 100;
+      const y = P.valueToCode(b, 'Y', P.ORDER_NONE) || 100;
+      const r = P.valueToCode(b, 'R', P.ORDER_NONE) || 50;
+      return `brain.screen.draw_circle(${x}, ${y}, ${r})\n`;
+    };
+    P['vex_screen_pressing'] = () => ['brain.screen.pressing()', P.ORDER_FUNCTION_CALL];
+    P['vex_screen_x_position'] = () => ['brain.screen.x_position()', P.ORDER_FUNCTION_CALL];
+    P['vex_screen_y_position'] = () => ['brain.screen.y_position()', P.ORDER_FUNCTION_CALL];
+    P['vex_screen_set_precision'] = (b) => {
+      const digits = b.getFieldValue('DIGITS');
+      return `brain.screen.set_print_precision(${digits})\n`;
+    };
+
+    // ── VEX V5 Sensing / Brain generators ───────────────────────────────
+    P['vex_brain_battery'] = (b) => {
+      const prop = b.getFieldValue('PROP');
+      return [`brain.battery.${prop}()`, P.ORDER_FUNCTION_CALL];
+    };
+    P['vex_sensor_range_found'] = (b) => {
+      const port = b.getFieldValue('PORT');
+      return [`Sonar(brain.three_wire_port.${port.toLowerCase()}).found_object()`, P.ORDER_FUNCTION_CALL];
+    };
+    P['vex_sensor_range_distance'] = (b) => {
+      const port = b.getFieldValue('PORT');
+      const units = b.getFieldValue('UNITS');
+      return [`Sonar(brain.three_wire_port.${port.toLowerCase()}).distance(${units})`, P.ORDER_FUNCTION_CALL];
+    };
+
+    // ── VEX V5 Console generators ───────────────────────────────────────
+    P['vex_console_print'] = (b) => {
+      const txt = P.valueToCode(b, 'TEXT', P.ORDER_NONE) || '""';
+      return `print(${txt})\n`;
+    };
+    P['vex_console_clear'] = () => 'print("\\033c")\n';
+
+    // ── VEX V5 Timer generators ─────────────────────────────────────────
+    P['vex_timer_reset'] = () => 'brain.timer.reset()\n';
+    P['vex_timer_value'] = (b) => {
+      const units = b.getFieldValue('UNITS');
+      return [`brain.timer.time(${units})`, P.ORDER_FUNCTION_CALL];
+    };
+
+    // ── VEX V5 Event generators ─────────────────────────────────────────
+    P['vex_event_started'] = (b) => {
+      const body = P.statementToCode(b, 'DO') || P.INDENT + 'pass\n';
+      return `def when_started():\n${body}\nwhen_started()\n`;
+    };
+    P['vex_event_autonomous'] = (b) => {
+      const body = P.statementToCode(b, 'DO') || P.INDENT + 'pass\n';
+      return `def autonomous():\n${body}\n`;
+    };
+    P['vex_event_driver'] = (b) => {
+      const body = P.statementToCode(b, 'DO') || P.INDENT + 'pass\n';
+      return `def driver_control():\n${body}\n`;
+    };
+    P['vex_event_broadcast'] = (b) => {
+      const msg = b.getFieldValue('MSG');
+      return `broadcast("${msg}")\n`;
+    };
+    P['vex_event_broadcast_wait'] = (b) => {
+      const msg = b.getFieldValue('MSG');
+      return `broadcast_and_wait("${msg}")\n`;
+    };
+    P['vex_event_receive'] = (b) => {
+      const msg = b.getFieldValue('MSG');
+      const body = P.statementToCode(b, 'DO') || P.INDENT + 'pass\n';
+      return `def on_${msg.replace(/\\W/g, '_')}():\n${body}\n`;
+    };
+    P['vex_screen_event'] = (b) => {
+      const action = b.getFieldValue('ACTION');
+      const body = P.statementToCode(b, 'DO') || P.INDENT + 'pass\n';
+      const fn = action === 'PRESSED' ? 'on_screen_pressed' : 'on_screen_released';
+      return `def ${fn}():\n${body}\nbrain.screen.${action === 'PRESSED' ? 'pressed' : 'released'}(${fn})\n`;
+    };
+    P['vex_bumper_event'] = (b) => {
+      const port = b.getFieldValue('PORT');
+      const action = b.getFieldValue('ACTION');
+      const body = P.statementToCode(b, 'DO') || P.INDENT + 'pass\n';
+      const fn = `on_bumper_${port.toLowerCase()}_${action.toLowerCase()}`;
+      return `def ${fn}():\n${body}\nBumper(brain.three_wire_port.${port.toLowerCase()}).${action === 'PRESSED' ? 'pressed' : 'released'}(${fn})\n`;
+    };
+
+    // ── VEX V5 Control extras generators ────────────────────────────────
+    P['vex_wait_until'] = (b) => {
+      const cond = P.valueToCode(b, 'COND', P.ORDER_NONE) || 'True';
+      return `while not (${cond}):\n${P.INDENT}wait(5, MSEC)\n`;
+    };
+    P['vex_stop_project'] = () => 'sys.exit()\n';
+    P['vex_comment'] = (b) => {
+      const txt = b.getFieldValue('TEXT');
+      return `# ${txt}\n`;
     };
   };
 
@@ -1112,6 +1658,9 @@ const BlocklySetup = (() => {
           { kind: 'block', type: 'vex_sensor_color' },
           { kind: 'block', type: 'vex_sensor_bumper' },
           { kind: 'block', type: 'vex_sensor_gyro' },
+          { kind: 'block', type: 'vex_sensor_range_found' },
+          { kind: 'block', type: 'vex_sensor_range_distance' },
+          { kind: 'block', type: 'vex_brain_battery' },
         ]
       });
       contents.push({
@@ -1122,12 +1671,74 @@ const BlocklySetup = (() => {
         ]
       });
       contents.push({
-        kind: 'category', name: '⏱️ Actions', colour: COLORS.io,
+        kind: 'category', name: '🖥️ Screen', colour: COLORS.vexScreen,
         contents: [
-          { kind: 'block', type: 'vex_wait',
-            inputs: { MSEC: { block: { type: 'math_number', fields: { NUM: 1000 } } } } },
           { kind: 'block', type: 'vex_print',
             inputs: { TEXT: { block: { type: 'text', fields: { TEXT: 'Hello VEX!' } } } } },
+          { kind: 'block', type: 'vex_screen_set_cursor',
+            inputs: {
+              ROW: { block: { type: 'math_number', fields: { NUM: 1 } } },
+              COL: { block: { type: 'math_number', fields: { NUM: 1 } } },
+            } },
+          { kind: 'block', type: 'vex_screen_next_row' },
+          { kind: 'block', type: 'vex_screen_clear' },
+          { kind: 'block', type: 'vex_screen_clear_row',
+            inputs: { ROW: { block: { type: 'math_number', fields: { NUM: 1 } } } } },
+          { kind: 'block', type: 'vex_screen_set_font' },
+          { kind: 'block', type: 'vex_screen_set_precision' },
+          { kind: 'block', type: 'vex_screen_set_pen_color' },
+          { kind: 'block', type: 'vex_screen_set_fill_color' },
+          { kind: 'block', type: 'vex_screen_set_pen_width',
+            inputs: { WIDTH: { block: { type: 'math_number', fields: { NUM: 1 } } } } },
+          { kind: 'block', type: 'vex_screen_draw_pixel',
+            inputs: {
+              X: { block: { type: 'math_number', fields: { NUM: 50 } } },
+              Y: { block: { type: 'math_number', fields: { NUM: 50 } } },
+            } },
+          { kind: 'block', type: 'vex_screen_draw_line',
+            inputs: {
+              X1: { block: { type: 'math_number', fields: { NUM: 0 } } },
+              Y1: { block: { type: 'math_number', fields: { NUM: 0 } } },
+              X2: { block: { type: 'math_number', fields: { NUM: 100 } } },
+              Y2: { block: { type: 'math_number', fields: { NUM: 100 } } },
+            } },
+          { kind: 'block', type: 'vex_screen_draw_rect',
+            inputs: {
+              X: { block: { type: 'math_number', fields: { NUM: 10 } } },
+              Y: { block: { type: 'math_number', fields: { NUM: 10 } } },
+              W: { block: { type: 'math_number', fields: { NUM: 100 } } },
+              H: { block: { type: 'math_number', fields: { NUM: 50 } } },
+            } },
+          { kind: 'block', type: 'vex_screen_draw_circle',
+            inputs: {
+              X: { block: { type: 'math_number', fields: { NUM: 120 } } },
+              Y: { block: { type: 'math_number', fields: { NUM: 60 } } },
+              R: { block: { type: 'math_number', fields: { NUM: 40 } } },
+            } },
+          { kind: 'block', type: 'vex_screen_pressing' },
+          { kind: 'block', type: 'vex_screen_x_position' },
+          { kind: 'block', type: 'vex_screen_y_position' },
+        ]
+      });
+      contents.push({
+        kind: 'category', name: '📋 Console', colour: COLORS.io,
+        contents: [
+          { kind: 'block', type: 'vex_console_print',
+            inputs: { TEXT: { block: { type: 'text', fields: { TEXT: 'Hello!' } } } } },
+          { kind: 'block', type: 'vex_console_clear' },
+        ]
+      });
+      contents.push({
+        kind: 'category', name: '🟢 Events', colour: COLORS.vexEvents,
+        contents: [
+          { kind: 'block', type: 'vex_event_started' },
+          { kind: 'block', type: 'vex_event_autonomous' },
+          { kind: 'block', type: 'vex_event_driver' },
+          { kind: 'block', type: 'vex_event_broadcast' },
+          { kind: 'block', type: 'vex_event_broadcast_wait' },
+          { kind: 'block', type: 'vex_event_receive' },
+          { kind: 'block', type: 'vex_screen_event' },
+          { kind: 'block', type: 'vex_bumper_event' },
         ]
       });
       // Standard Blockly categories still useful for VEX
@@ -1144,12 +1755,18 @@ const BlocklySetup = (() => {
         ]
       });
       contents.push({
-        kind: 'category', name: '🔁 Loops', colour: COLORS.control,
+        kind: 'category', name: '🔁 Control', colour: COLORS.control,
         contents: [
+          { kind: 'block', type: 'vex_wait',
+            inputs: { MSEC: { block: { type: 'math_number', fields: { NUM: 1000 } } } } },
+          { kind: 'block', type: 'vex_wait_until' },
           { kind: 'block', type: 'controls_repeat_ext',
             inputs: { TIMES: { block: { type: 'math_number', fields: { NUM: 5 } } } } },
           { kind: 'block', type: 'controls_whileUntil' },
           { kind: 'block', type: 'controls_for' },
+          { kind: 'block', type: 'vex_timer_reset' },
+          { kind: 'block', type: 'vex_timer_value' },
+          { kind: 'block', type: 'vex_stop_project' },
         ]
       });
       contents.push({
@@ -1159,6 +1776,7 @@ const BlocklySetup = (() => {
           { kind: 'block', type: 'math_arithmetic' },
           { kind: 'block', type: 'math_single' },
           { kind: 'block', type: 'math_round' },
+          { kind: 'block', type: 'math_modulo' },
           { kind: 'block', type: 'math_random_int' },
         ]
       });
@@ -1167,10 +1785,20 @@ const BlocklySetup = (() => {
         contents: [
           { kind: 'block', type: 'text' },
           { kind: 'block', type: 'text_join' },
+          { kind: 'block', type: 'text_length' },
+          { kind: 'block', type: 'text_charAt' },
+          { kind: 'block', type: 'text_indexOf' },
         ]
       });
       contents.push({ kind: 'category', name: '📦 Variables', colour: '#7c3aed', custom: 'VARIABLE' });
       contents.push({ kind: 'category', name: '🧩 Functions', colour: '#9333ea', custom: 'PROCEDURE' });
+      contents.push({ kind: 'sep' });
+      contents.push({
+        kind: 'category', name: '💬 Comments', colour: '#94a3b8',
+        contents: [
+          { kind: 'block', type: 'vex_comment' },
+        ]
+      });
       return { kind: 'categoryToolbox', contents };
     }
 

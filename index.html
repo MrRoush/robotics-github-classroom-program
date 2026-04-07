@@ -372,14 +372,41 @@
                   <div class="py-cmd-section">Sensors</div>
                   <button class="py-cmd-btn" data-insert="Distance(Ports.PORT1).object_distance(MM)" title="Read the distance (mm) from a VEX V5 Distance Sensor.">Distance(port).object_distance(MM)</button>
                   <button class="py-cmd-btn" data-insert="Color(Ports.PORT1).color()" title="Read the detected color from a VEX V5 Color Sensor.">Color(port).color()</button>
-                  <button class="py-cmd-btn" data-insert="Bumper(Ports.PORT1).pressing()" title="Returns True if the VEX V5 Bumper Switch is pressed.">Bumper(port).pressing()</button>
+                  <button class="py-cmd-btn" data-insert="Bumper(brain.three_wire_port.a).pressing()" title="Returns True if the VEX V5 Bumper Switch is pressed (3-wire port).">Bumper(port).pressing()</button>
                   <button class="py-cmd-btn" data-insert="Inertial(Ports.PORT2).heading()" title="Read the heading (0–360°) from the VEX V5 Inertial/Gyro Sensor.">Inertial(port).heading()</button>
+                  <button class="py-cmd-btn" data-insert="Sonar(brain.three_wire_port.c).distance(MM)" title="Read the distance from a 3-wire Range Finder (sonar sensor).">Sonar(port).distance(MM)</button>
                   <div class="py-cmd-section">Controller</div>
                   <button class="py-cmd-btn" data-insert="controller.ButtonA.pressing()" title="Returns True if the A button on the VEX V5 Controller is pressed.">controller.ButtonA.pressing()</button>
                   <button class="py-cmd-btn" data-insert="controller.Axis3.position()" title="Read joystick axis position (-100 to 100). Axis3 = Left Y, Axis4 = Left X, Axis1 = Right X, Axis2 = Right Y.">controller.Axis3.position()</button>
-                  <div class="py-cmd-section">Brain &amp; Timing</div>
+                  <div class="py-cmd-section">Screen</div>
                   <button class="py-cmd-btn" data-insert="brain.screen.print('Hello')" title="Print text on the VEX V5 Brain screen.">brain.screen.print(text)</button>
+                  <button class="py-cmd-btn" data-insert="brain.screen.set_cursor(1, 1)" title="Set the cursor to the given row and column on the Brain screen.">brain.screen.set_cursor(row, col)</button>
+                  <button class="py-cmd-btn" data-insert="brain.screen.next_row()" title="Move the cursor to the next row on the Brain screen.">brain.screen.next_row()</button>
+                  <button class="py-cmd-btn" data-insert="brain.screen.clear_screen()" title="Clear the entire Brain screen.">brain.screen.clear_screen()</button>
+                  <button class="py-cmd-btn" data-insert="brain.screen.clear_row(1)" title="Clear a specific row on the Brain screen.">brain.screen.clear_row(row)</button>
+                  <button class="py-cmd-btn" data-insert="brain.screen.set_font(FontType.MONO20)" title="Set the font on the Brain screen.">brain.screen.set_font(font)</button>
+                  <button class="py-cmd-btn" data-insert="brain.screen.set_pen_color(Color.RED)" title="Set the pen/text color on the Brain screen.">brain.screen.set_pen_color(color)</button>
+                  <button class="py-cmd-btn" data-insert="brain.screen.set_fill_color(Color.BLUE)" title="Set the fill color for shapes on the Brain screen.">brain.screen.set_fill_color(color)</button>
+                  <button class="py-cmd-btn" data-insert="brain.screen.set_pen_width(2)" title="Set the pen width for drawing on the Brain screen.">brain.screen.set_pen_width(w)</button>
+                  <button class="py-cmd-btn" data-insert="brain.screen.draw_pixel(50, 50)" title="Draw a pixel at (x, y) on the Brain screen.">brain.screen.draw_pixel(x, y)</button>
+                  <button class="py-cmd-btn" data-insert="brain.screen.draw_line(0, 0, 100, 100)" title="Draw a line from (x1,y1) to (x2,y2) on the Brain screen.">brain.screen.draw_line(x1, y1, x2, y2)</button>
+                  <button class="py-cmd-btn" data-insert="brain.screen.draw_rectangle(10, 10, 100, 50)" title="Draw a rectangle at (x, y) with width and height on the Brain screen.">brain.screen.draw_rectangle(x, y, w, h)</button>
+                  <button class="py-cmd-btn" data-insert="brain.screen.draw_circle(120, 60, 40)" title="Draw a circle at (x, y) with radius on the Brain screen.">brain.screen.draw_circle(x, y, r)</button>
+                  <button class="py-cmd-btn" data-insert="brain.screen.pressing()" title="Returns True if the Brain touch screen is being pressed.">brain.screen.pressing()</button>
+                  <button class="py-cmd-btn" data-insert="brain.screen.x_position()" title="Returns the X coordinate of the last touch.">brain.screen.x_position()</button>
+                  <button class="py-cmd-btn" data-insert="brain.screen.y_position()" title="Returns the Y coordinate of the last touch.">brain.screen.y_position()</button>
+                  <div class="py-cmd-section">Brain &amp; Timing</div>
+                  <button class="py-cmd-btn" data-insert="brain.battery.voltage()" title="Read the VEX V5 Brain battery voltage in volts.">brain.battery.voltage()</button>
+                  <button class="py-cmd-btn" data-insert="brain.battery.current()" title="Read the VEX V5 Brain battery current in amps.">brain.battery.current()</button>
+                  <button class="py-cmd-btn" data-insert="brain.battery.capacity()" title="Read the VEX V5 Brain battery capacity as a percentage.">brain.battery.capacity()</button>
                   <button class="py-cmd-btn" data-insert="wait(1000, MSEC)" title="Pause the program for the given number of milliseconds.">wait(msec, MSEC)</button>
+                  <button class="py-cmd-btn" data-insert="brain.timer.reset()" title="Reset the Brain timer to zero.">brain.timer.reset()</button>
+                  <button class="py-cmd-btn" data-insert="brain.timer.time(SECONDS)" title="Get the current Brain timer value in seconds.">brain.timer.time(SECONDS)</button>
+                  <div class="py-cmd-section">Console</div>
+                  <button class="py-cmd-btn" data-insert="print('Hello')" title="Print a message to the console output.">print(text)</button>
+                  <div class="py-cmd-section">Events</div>
+                  <button class="py-cmd-btn" data-insert="def autonomous():&#10;    pass" title="Define the autonomous routine (runs during competition autonomous period).">def autonomous()</button>
+                  <button class="py-cmd-btn" data-insert="def driver_control():&#10;    pass" title="Define the driver control routine (runs during competition driver period).">def driver_control()</button>
                 </div>
               </div>
             </div>
