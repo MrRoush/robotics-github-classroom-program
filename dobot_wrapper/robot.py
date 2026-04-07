@@ -1164,7 +1164,10 @@ class DobotRobot:
         self._sim_log(f'broadcast("{message}")')
         cb = self._callbacks.get(f'message_{message}')
         if cb:
-            cb()
+            try:
+                cb()
+            except Exception as exc:
+                self._log(f'⚠️  Error in message handler for "{message}": {exc}')
 
     def broadcast_and_wait(self, message: str):
         """
@@ -1176,7 +1179,10 @@ class DobotRobot:
         self._sim_log(f'broadcast_and_wait("{message}")')
         cb = self._callbacks.get(f'message_{message}')
         if cb:
-            cb()
+            try:
+                cb()
+            except Exception as exc:
+                self._log(f'⚠️  Error in message handler for "{message}": {exc}')
 
     def on_message(self, message: str, callback):
         """

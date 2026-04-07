@@ -2396,15 +2396,16 @@ const BlocklySetup = (() => {
     P['dobot_when_receive'] = (b) => {
       const msg = b.getFieldValue('MSG');
       const body = P.statementToCode(b, 'DO') || P.INDENT + 'pass\n';
-      return `def on_${msg.replace(/\W/g, '_')}():\n${body}\nrobot.on_message("${msg}", on_${msg.replace(/\W/g, '_')})\n`;
+      const safeName = 'msg_' + msg.replace(/\W/g, '_');
+      return `def ${safeName}():\n${body}\nrobot.on_message("${msg}", ${safeName})\n`;
     };
     P['dobot_wait_until'] = (b) => {
       const cond = P.valueToCode(b, 'COND', P.ORDER_NONE) || 'True';
       return `while not (${cond}):\n${P.INDENT}time.sleep(0.05)\n`;
     };
     P['dobot_stop'] = () => 'robot.emergency_stop()\nsys.exit()\n';
-    P['dobot_timer_reset'] = () => '_timer_start = time.time()\n';
-    P['dobot_timer_value'] = () => ['(time.time() - _timer_start)', P.ORDER_FUNCTION_CALL];
+    P['dobot_timer_reset'] = () => 'timer_start = time.time()\n';
+    P['dobot_timer_value'] = () => ['(time.time() - timer_start)', P.ORDER_FUNCTION_CALL];
 
     // ── SmartBot (AI Starter) generators ────────────────────────────────
     P['smartbot_init'] = () => 'robot.smartbot_init()\n';
@@ -3434,7 +3435,7 @@ const BlocklySetup = (() => {
           code,
         ].join('\n');
       }
-      return `# Auto-generated Python code from Blockly blocks\nimport time\nimport sys\nfrom dobot_wrapper import DobotRobot\n\n# Change the port to match your robot's COM port (check Device Manager)\nrobot = DobotRobot(port='${localStorage.getItem('robot_port') || 'COM3'}')\n_timer_start = time.time()\n\n${code}`;
+      return `# Auto-generated Python code from Blockly blocks\nimport time\nimport sys\nfrom dobot_wrapper import DobotRobot\n\n# Change the port to match your robot's COM port (check Device Manager)\nrobot = DobotRobot(port='${localStorage.getItem('robot_port') || 'COM3'}')\ntimer_start = time.time()\n\n${code}`;
     } catch (e) {
       return `# Could not generate Python code: ${e.message}`;
     }
