@@ -520,6 +520,207 @@ const BlocklySetup = (() => {
       }
     };
 
+    // ── DOBOT MAGICIAN SETTINGS BLOCKS ──────────────────────────────────
+
+    Blockly.Blocks['dobot_set_end_effector'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('🔧 Set End Effector to')
+          .appendField(new Blockly.FieldDropdown([
+            ['Gripper', 'gripper'],
+            ['Suction Cup', 'suction'],
+            ['Pen', 'pen'],
+          ]), 'EFFECTOR');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.gripper);
+        this.setTooltip('Select the end effector attached to the robot arm.');
+      }
+    };
+
+    Blockly.Blocks['dobot_set_motion_ratio'] = {
+      init() {
+        this.appendDummyInput().appendField('⚡ Set Motion Ratio');
+        this.appendValueInput('VELOCITY').setCheck('Number').appendField('Velocity');
+        this.appendDummyInput().appendField('%');
+        this.appendValueInput('ACCEL').setCheck('Number').appendField('Acceleration');
+        this.appendDummyInput().appendField('%');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.speed);
+        this.setTooltip('Set the motion velocity and acceleration as a percentage (0–100%).');
+      }
+    };
+
+    Blockly.Blocks['dobot_set_joint_speed'] = {
+      init() {
+        this.appendDummyInput().appendField('⚡ Set Joint Speed');
+        this.appendValueInput('VELOCITY').setCheck('Number').appendField('Velocity');
+        this.appendDummyInput().appendField('°/s');
+        this.appendValueInput('ACCEL').setCheck('Number').appendField('Acceleration');
+        this.appendDummyInput().appendField('°/s²');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.speed);
+        this.setTooltip('Set the joint movement velocity (degrees/s) and acceleration (degrees/s²).');
+      }
+    };
+
+    Blockly.Blocks['dobot_set_xyz_speed'] = {
+      init() {
+        this.appendDummyInput().appendField('⚡ Set XYZ Speed');
+        this.appendValueInput('VELOCITY').setCheck('Number').appendField('Velocity');
+        this.appendDummyInput().appendField('mm/s');
+        this.appendValueInput('ACCEL').setCheck('Number').appendField('Acceleration');
+        this.appendDummyInput().appendField('mm/s²');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.speed);
+        this.setTooltip('Set the Cartesian movement velocity (mm/s) and acceleration (mm/s²).');
+      }
+    };
+
+    Blockly.Blocks['dobot_set_jump_height'] = {
+      init() {
+        this.appendDummyInput().appendField('📐 Set Jump Parameters');
+        this.appendValueInput('HEIGHT').setCheck('Number').appendField('Jump Height');
+        this.appendDummyInput().appendField('mm');
+        this.appendValueInput('ZLIMIT').setCheck('Number').appendField('Z Limit');
+        this.appendDummyInput().appendField('mm');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.movement);
+        this.setTooltip('Set the jump height and maximum Z limit for Jump To movements (mm).');
+      }
+    };
+
+    Blockly.Blocks['dobot_jump_to'] = {
+      init() {
+        this.appendDummyInput().appendField('🦘 Jump to Position');
+        this.appendValueInput('X').setCheck('Number').appendField('X:');
+        this.appendValueInput('Y').setCheck('Number').appendField('Y:');
+        this.appendValueInput('Z').setCheck('Number').appendField('Z:');
+        this.appendValueInput('R').setCheck('Number').appendField('R:');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.movement);
+        this.setTooltip('Jump to a position: the arm lifts up, moves over, then descends to the target point.');
+      }
+    };
+
+    Blockly.Blocks['dobot_go_to'] = {
+      init() {
+        this.appendDummyInput().appendField('📍 Go to Position');
+        this.appendValueInput('X').setCheck('Number').appendField('X:');
+        this.appendValueInput('Y').setCheck('Number').appendField('Y:');
+        this.appendValueInput('Z').setCheck('Number').appendField('Z:');
+        this.appendValueInput('R').setCheck('Number').appendField('R:');
+        this.appendDummyInput()
+          .appendField('Motion:')
+          .appendField(new Blockly.FieldDropdown([
+            ['Joint', 'joint'],
+            ['Straight Line', 'linear'],
+          ]), 'MODE');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.movement);
+        this.setTooltip('Move to a position using joint movement (fastest) or straight line (precise path).');
+      }
+    };
+
+    Blockly.Blocks['dobot_set_r'] = {
+      init() {
+        this.appendValueInput('R')
+          .setCheck('Number')
+          .appendField('🔄 Set End Effector Rotation R');
+        this.appendDummyInput().appendField('degrees');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.movement);
+        this.setTooltip('Set the end effector rotation to a specific angle (degrees).');
+      }
+    };
+
+    Blockly.Blocks['dobot_clear_alarm'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('🔔 Clear Alarm');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#dc2626');
+        this.setTooltip('Clear any active alarms on the Dobot robot.');
+      }
+    };
+
+    Blockly.Blocks['dobot_set_stepper_speed'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('⚙️ Set Stepper Motor')
+          .appendField(new Blockly.FieldDropdown([
+            ['STEPPER1','1'],['STEPPER2','2'],
+          ]), 'PORT')
+          .appendField('Speed');
+        this.appendValueInput('SPEED').setCheck('Number');
+        this.appendDummyInput().appendField('pulse/s');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.conveyor);
+        this.setTooltip('Set continuous stepper motor speed in pulses per second.');
+      }
+    };
+
+    Blockly.Blocks['dobot_set_stepper_pulses'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('⚙️ Stepper Motor')
+          .appendField(new Blockly.FieldDropdown([
+            ['STEPPER1','1'],['STEPPER2','2'],
+          ]), 'PORT');
+        this.appendValueInput('SPEED').setCheck('Number').appendField('Speed');
+        this.appendDummyInput().appendField('pulse/s for');
+        this.appendValueInput('PULSES').setCheck('Number');
+        this.appendDummyInput().appendField('pulses');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.conveyor);
+        this.setTooltip('Run stepper motor at a speed for a specific number of pulses then stop.');
+      }
+    };
+
+    Blockly.Blocks['dobot_lost_step_detect'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('🔍 Perform Lost Step Detection');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.sensor);
+        this.setTooltip('Perform a lost step detection to check if the robot motors have lost steps.');
+      }
+    };
+
+    Blockly.Blocks['dobot_set_lost_step_threshold'] = {
+      init() {
+        this.appendValueInput('THRESHOLD')
+          .setCheck('Number')
+          .appendField('🔍 Set Lost Step Threshold');
+        this.appendDummyInput().appendField('degrees');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.sensor);
+        this.setTooltip('Set the threshold (degrees) for lost step detection.');
+      }
+    };
+
     // ── PORT INITIALIZATION BLOCKS ─────────────────────────────────────
 
     Blockly.Blocks['dobot_init_color_sensor'] = {
@@ -577,6 +778,107 @@ const BlocklySetup = (() => {
       }
     };
 
+    // ── DOBOT CONTROL EVENT BLOCKS ─────────────────────────────────────
+
+    Blockly.Blocks['dobot_when_started'] = {
+      init() {
+        this.appendDummyInput().appendField('🚩 When Program Started');
+        this.appendStatementInput('DO');
+        this.setColour(COLORS.control);
+        this.setTooltip('Code inside runs when the program starts.');
+      }
+    };
+
+    Blockly.Blocks['dobot_when_button'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('🔘 When')
+          .appendField(new Blockly.FieldDropdown([
+            ['Button A', 'A'],
+            ['Button B', 'B'],
+          ]), 'BUTTON')
+          .appendField('Pressed');
+        this.appendStatementInput('DO');
+        this.setColour(COLORS.control);
+        this.setTooltip('Run the enclosed code when the specified button is pressed.');
+      }
+    };
+
+    Blockly.Blocks['dobot_broadcast'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('📢 Broadcast Message')
+          .appendField(new Blockly.FieldTextInput('message1'), 'MSG');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.control);
+        this.setTooltip('Broadcast a named event message.');
+      }
+    };
+
+    Blockly.Blocks['dobot_broadcast_wait'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('📢 Broadcast Message')
+          .appendField(new Blockly.FieldTextInput('message1'), 'MSG')
+          .appendField('and Wait');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.control);
+        this.setTooltip('Broadcast a named event message and wait for all listeners to finish.');
+      }
+    };
+
+    Blockly.Blocks['dobot_when_receive'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('📨 When I Receive')
+          .appendField(new Blockly.FieldTextInput('message1'), 'MSG');
+        this.appendStatementInput('DO');
+        this.setColour(COLORS.control);
+        this.setTooltip('Run the enclosed code when the named broadcast message is received.');
+      }
+    };
+
+    Blockly.Blocks['dobot_wait_until'] = {
+      init() {
+        this.appendValueInput('COND').setCheck('Boolean').appendField('⏳ Wait Until');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.control);
+        this.setTooltip('Pause the program until the condition becomes true.');
+      }
+    };
+
+    Blockly.Blocks['dobot_stop'] = {
+      init() {
+        this.appendDummyInput().appendField('🛑 Stop Program');
+        this.setPreviousStatement(true, null);
+        this.setColour(COLORS.control);
+        this.setTooltip('Stop the robot program immediately.');
+      }
+    };
+
+    Blockly.Blocks['dobot_timer_reset'] = {
+      init() {
+        this.appendDummyInput().appendField('⏱️ Reset Timer');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.control);
+        this.setTooltip('Reset the program timer to zero.');
+      }
+    };
+
+    Blockly.Blocks['dobot_timer_value'] = {
+      init() {
+        this.appendDummyInput().appendField('⏱️ Timer (seconds)');
+        this.setOutput(true, 'Number');
+        this.setColour(COLORS.control);
+        this.setTooltip('Get the current timer value in seconds.');
+      }
+    };
+
     // ── AI STARTER DRIVE BLOCKS ────────────────────────────────────────
 
     Blockly.Blocks['ai_starter_drive_forward'] = {
@@ -630,6 +932,616 @@ const BlocklySetup = (() => {
         this.setNextStatement(true, null);
         this.setColour(COLORS.movement);
         this.setTooltip('Stop the AI Starter robot wheels.');
+      }
+    };
+
+    // ── SMARTBOT (AI STARTER) SPECIFIC BLOCKS ──────────────────────────
+
+    Blockly.Blocks['smartbot_init'] = {
+      init() {
+        this.appendDummyInput().appendField('🤖 Initialize SmartBot');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.movement);
+        this.setTooltip('Initialize the SmartBot (AI Starter) system.');
+      }
+    };
+
+    Blockly.Blocks['smartbot_set_motor_speed'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('🚗 Car')
+          .appendField(new Blockly.FieldDropdown([
+            ['Left', 'left'],
+            ['Right', 'right'],
+          ]), 'SIDE')
+          .appendField('Motor Speed');
+        this.appendValueInput('SPEED').setCheck('Number');
+        this.appendDummyInput().appendField('rpm');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.movement);
+        this.setTooltip('Set the speed (rpm) of the left or right wheel motor.');
+      }
+    };
+
+    Blockly.Blocks['smartbot_set_motor_pid'] = {
+      init() {
+        this.appendDummyInput().appendField('⚙️ Set Motor PID');
+        this.appendValueInput('KP').setCheck('Number').appendField('KP');
+        this.appendValueInput('KI').setCheck('Number').appendField('KI');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.speed);
+        this.setTooltip('Set the PID parameters (KP, KI) for the SmartBot motors.');
+      }
+    };
+
+    Blockly.Blocks['smartbot_set_led'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('💡 Set')
+          .appendField(new Blockly.FieldDropdown([
+            ['LED 1', '1'],
+            ['LED 2', '2'],
+          ]), 'LED')
+          .appendField(new Blockly.FieldDropdown([
+            ['ON', 'on'],
+            ['OFF', 'off'],
+            ['Blink', 'blink'],
+          ]), 'STATE');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.io);
+        this.setTooltip('Control an LED on the SmartBot (on, off, or blink).');
+      }
+    };
+
+    Blockly.Blocks['smartbot_servo_attach'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('🔩 Attach Servo')
+          .appendField(new Blockly.FieldDropdown([
+            ['SERVO1', '1'],
+            ['SERVO2', '2'],
+          ]), 'PORT');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.movement);
+        this.setTooltip('Attach/enable the specified servo motor port.');
+      }
+    };
+
+    Blockly.Blocks['smartbot_servo_set_angle'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('🔩 Set')
+          .appendField(new Blockly.FieldDropdown([
+            ['SERVO1', '1'],
+            ['SERVO2', '2'],
+          ]), 'PORT')
+          .appendField('Angle');
+        this.appendValueInput('ANGLE').setCheck('Number');
+        this.appendDummyInput().appendField('degrees');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.movement);
+        this.setTooltip('Set the servo motor angle (0–180 degrees).');
+      }
+    };
+
+    Blockly.Blocks['smartbot_servo_detach'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('🔩 Detach Servo')
+          .appendField(new Blockly.FieldDropdown([
+            ['SERVO1', '1'],
+            ['SERVO2', '2'],
+          ]), 'PORT');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.movement);
+        this.setTooltip('Detach/disable the specified servo motor port.');
+      }
+    };
+
+    Blockly.Blocks['smartbot_ultrasonic_start'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('📡 Start Ultrasonic')
+          .appendField(new Blockly.FieldDropdown([
+            ['Right Front', 'right_front'],
+            ['Front', 'front'],
+            ['Left Front', 'left_front'],
+          ]), 'POSITION');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.sensor);
+        this.setTooltip('Start the ultrasonic sensor at the specified position.');
+      }
+    };
+
+    Blockly.Blocks['smartbot_ultrasonic_detected'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('📡')
+          .appendField(new Blockly.FieldDropdown([
+            ['Right Front', 'right_front'],
+            ['Front', 'front'],
+            ['Left Front', 'left_front'],
+          ]), 'POSITION')
+          .appendField('Detected Barrier?');
+        this.setOutput(true, 'Boolean');
+        this.setColour(COLORS.sensor);
+        this.setTooltip('Returns true if the ultrasonic sensor detects a barrier.');
+      }
+    };
+
+    Blockly.Blocks['smartbot_ultrasonic_data'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('📡')
+          .appendField(new Blockly.FieldDropdown([
+            ['Right Front', 'right_front'],
+            ['Front', 'front'],
+            ['Left Front', 'left_front'],
+          ]), 'POSITION')
+          .appendField('Ultrasonic Distance');
+        this.setOutput(true, 'Number');
+        this.setColour(COLORS.sensor);
+        this.setTooltip('Returns the distance (mm) from the ultrasonic sensor.');
+      }
+    };
+
+    Blockly.Blocks['smartbot_ir_data'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('📡 IR Sensor')
+          .appendField(new Blockly.FieldDropdown([
+            ['IR1','1'],['IR2','2'],['IR3','3'],
+            ['IR4','4'],['IR5','5'],['IR6','6'],
+          ]), 'SENSOR')
+          .appendField('Data');
+        this.setOutput(true, 'Number');
+        this.setColour(COLORS.sensor);
+        this.setTooltip('Read the IR sensor value at the specified position.');
+      }
+    };
+
+    Blockly.Blocks['smartbot_geomagnetic'] = {
+      init() {
+        this.appendDummyInput().appendField('🧭 Geomagnetic Angle');
+        this.setOutput(true, 'Number');
+        this.setColour(COLORS.sensor);
+        this.setTooltip('Returns the geomagnetic (compass) heading angle in degrees.');
+      }
+    };
+
+    Blockly.Blocks['smartbot_color_sensor_init'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('🎨 Set')
+          .appendField(new Blockly.FieldDropdown([
+            ['Right', 'right'],
+            ['Left', 'left'],
+          ]), 'SIDE')
+          .appendField('Color Sensor')
+          .appendField(new Blockly.FieldDropdown([
+            ['ON', 'on'],
+            ['OFF', 'off'],
+          ]), 'STATE');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.sensor);
+        this.setTooltip('Turn the left or right color sensor on or off.');
+      }
+    };
+
+    Blockly.Blocks['smartbot_color_sensor_data'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('🎨 Get')
+          .appendField(new Blockly.FieldDropdown([
+            ['Right', 'right'],
+            ['Left', 'left'],
+          ]), 'SIDE')
+          .appendField('Color Sensor')
+          .appendField(new Blockly.FieldDropdown([
+            ['Red', 'red'],
+            ['Green', 'green'],
+            ['Blue', 'blue'],
+          ]), 'CHANNEL')
+          .appendField('Data');
+        this.setOutput(true, 'Number');
+        this.setColour(COLORS.sensor);
+        this.setTooltip('Read the red, green, or blue value from the left or right color sensor.');
+      }
+    };
+
+    Blockly.Blocks['smartbot_color_white_balance'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('🎨 Set')
+          .appendField(new Blockly.FieldDropdown([
+            ['Right', 'right'],
+            ['Left', 'left'],
+          ]), 'SIDE')
+          .appendField('Color White Balance');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.sensor);
+        this.setTooltip('Calibrate white balance for the left or right color sensor.');
+      }
+    };
+
+    Blockly.Blocks['smartbot_switch_status'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('🔘')
+          .appendField(new Blockly.FieldDropdown([
+            ['Switch 1', '1'],
+            ['Switch 2', '2'],
+            ['Switch 3', '3'],
+          ]), 'SWITCH')
+          .appendField('Status');
+        this.setOutput(true, 'Boolean');
+        this.setColour(COLORS.sensor);
+        this.setTooltip('Returns the status of the specified switch (true = pressed).');
+      }
+    };
+
+    Blockly.Blocks['smartbot_motor_encoder'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('📐 Motor Encoder')
+          .appendField(new Blockly.FieldDropdown([
+            ['Right', 'right'],
+            ['Left', 'left'],
+          ]), 'SIDE')
+          .appendField('Value');
+        this.setOutput(true, 'Number');
+        this.setColour(COLORS.sensor);
+        this.setTooltip('Read the motor encoder value for the left or right wheel.');
+      }
+    };
+
+    Blockly.Blocks['smartbot_photoresistance'] = {
+      init() {
+        this.appendDummyInput().appendField('☀️ Photoresistance Value');
+        this.setOutput(true, 'Number');
+        this.setColour(COLORS.sensor);
+        this.setTooltip('Read the photoresistance (light level) sensor value.');
+      }
+    };
+
+    Blockly.Blocks['smartbot_ultrasonic_threshold'] = {
+      init() {
+        this.appendValueInput('THRESHOLD')
+          .setCheck('Number')
+          .appendField('📡 Set Ultrasonic Threshold');
+        this.appendDummyInput().appendField('mm');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.sensor);
+        this.setTooltip('Set the detection threshold distance (mm) for ultrasonic sensors.');
+      }
+    };
+
+    Blockly.Blocks['smartbot_line_patrol_pid'] = {
+      init() {
+        this.appendDummyInput().appendField('📏 Set Line Patrol PID');
+        this.appendValueInput('KP').setCheck('Number').appendField('KP');
+        this.appendValueInput('KI').setCheck('Number').appendField('KI');
+        this.appendValueInput('KD').setCheck('Number').appendField('KD');
+        this.appendValueInput('ERROR_LIMIT').setCheck('Number').appendField('Error Limit');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.speed);
+        this.setTooltip('Set PID parameters for line patrol: KP, KI, KD, and accumulated error limit.');
+      }
+    };
+
+    // ── SMARTBOT SERIAL / I/O BLOCKS ───────────────────────────────────
+
+    Blockly.Blocks['smartbot_set_port_mode'] = {
+      init() {
+        this.appendValueInput('PORT')
+          .setCheck('Number')
+          .appendField('🔌 Set Port');
+        this.appendDummyInput()
+          .appendField('Mode')
+          .appendField(new Blockly.FieldDropdown([
+            ['Output', 'output'],
+            ['Input', 'input'],
+          ]), 'MODE');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.io);
+        this.setTooltip('Set a digital I/O port to input or output mode.');
+      }
+    };
+
+    Blockly.Blocks['smartbot_digital_write'] = {
+      init() {
+        this.appendValueInput('PORT')
+          .setCheck('Number')
+          .appendField('🔌 Digital Port');
+        this.appendDummyInput()
+          .appendField('Level')
+          .appendField(new Blockly.FieldDropdown([
+            ['HIGH', 'high'],
+            ['LOW', 'low'],
+          ]), 'LEVEL');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.io);
+        this.setTooltip('Set a digital port output level to HIGH or LOW.');
+      }
+    };
+
+    Blockly.Blocks['smartbot_analog_write'] = {
+      init() {
+        this.appendValueInput('PORT')
+          .setCheck('Number')
+          .appendField('🔌 Analog Port');
+        this.appendValueInput('DUTY')
+          .setCheck('Number')
+          .appendField('Duty Cycle');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.io);
+        this.setTooltip('Output an analog (PWM) signal on a port with the given duty cycle (0–255).');
+      }
+    };
+
+    Blockly.Blocks['smartbot_digital_read'] = {
+      init() {
+        this.appendValueInput('PORT')
+          .setCheck('Number')
+          .appendField('🔌 Get Digital Signal Port');
+        this.setInputsInline(true);
+        this.setOutput(true, 'Number');
+        this.setColour(COLORS.io);
+        this.setTooltip('Read the digital signal value from a port (0 or 1).');
+      }
+    };
+
+    Blockly.Blocks['smartbot_analog_read'] = {
+      init() {
+        this.appendValueInput('PORT')
+          .setCheck('Number')
+          .appendField('🔌 Get Analog Signal Port');
+        this.setInputsInline(true);
+        this.setOutput(true, 'Number');
+        this.setColour(COLORS.io);
+        this.setTooltip('Read the analog signal value from a port (0–1023).');
+      }
+    };
+
+    Blockly.Blocks['smartbot_set_servo_port'] = {
+      init() {
+        this.appendValueInput('PORT')
+          .setCheck('Number')
+          .appendField('🔩 Set Servo Port');
+        this.appendValueInput('ANGLE')
+          .setCheck('Number')
+          .appendField('Angle');
+        this.appendDummyInput().appendField('degrees');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.io);
+        this.setTooltip('Set the angle of a servo connected to a specific port.');
+      }
+    };
+
+    Blockly.Blocks['smartbot_tone'] = {
+      init() {
+        this.appendValueInput('PORT')
+          .setCheck('Number')
+          .appendField('🔊 Sound Port');
+        this.appendValueInput('FREQ')
+          .setCheck('Number')
+          .appendField('Frequency');
+        this.appendDummyInput().appendField('Hz');
+        this.appendValueInput('DURATION')
+          .setCheck('Number')
+          .appendField('Duration');
+        this.appendDummyInput().appendField('ms');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.io);
+        this.setTooltip('Output a sound wave on a port at the given frequency and duration.');
+      }
+    };
+
+    // ── SMARTBOT SERIAL BLOCKS ─────────────────────────────────────────
+
+    Blockly.Blocks['smartbot_set_baud_rate'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('📡 Set Baud Rate')
+          .appendField(new Blockly.FieldDropdown([
+            ['9600', '9600'],
+            ['115200', '115200'],
+          ]), 'RATE');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.io);
+        this.setTooltip('Set the serial communication baud rate.');
+      }
+    };
+
+    Blockly.Blocks['smartbot_serial_print'] = {
+      init() {
+        this.appendValueInput('TEXT')
+          .setCheck('String')
+          .appendField('📡 Serial Print');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.io);
+        this.setTooltip('Print a message to the serial monitor.');
+      }
+    };
+
+    Blockly.Blocks['smartbot_serial_println'] = {
+      init() {
+        this.appendValueInput('TEXT')
+          .setCheck('String')
+          .appendField('📡 Serial Print Line');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.io);
+        this.setTooltip('Print a message followed by a new line to the serial monitor.');
+      }
+    };
+
+    Blockly.Blocks['smartbot_serial_read'] = {
+      init() {
+        this.appendDummyInput().appendField('📡 Get Serial Data');
+        this.setOutput(true, 'String');
+        this.setColour(COLORS.io);
+        this.setTooltip('Read data from the serial buffer.');
+      }
+    };
+
+    // ── AI SMART KIT BLOCKS ────────────────────────────────────────────
+
+    Blockly.Blocks['smartkit_init'] = {
+      init() {
+        this.appendDummyInput().appendField('🧠 Initialize SmartKit');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.ai);
+        this.setTooltip('Initialize the AI Smart Kit system and sensors.');
+      }
+    };
+
+    Blockly.Blocks['smartkit_speech_init'] = {
+      init() {
+        this.appendDummyInput().appendField('🎤 Speech Recognition Init');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.ai);
+        this.setTooltip('Initialize the speech recognition module.');
+      }
+    };
+
+    Blockly.Blocks['smartkit_speech_add_phrase'] = {
+      init() {
+        this.appendValueInput('PHRASE')
+          .setCheck('String')
+          .appendField('🎤 Add Phrase to Slot');
+        this.appendDummyInput()
+          .appendField(new Blockly.FieldDropdown(
+            Array.from({length: 20}, (_, i) => [String(i + 1), String(i + 1)])
+          ), 'SLOT');
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.ai);
+        this.setTooltip('Add a phrase to a speech recognition slot (1–20).');
+      }
+    };
+
+    Blockly.Blocks['smartkit_speech_detect'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('🎤 Detect Phrase Slot')
+          .appendField(new Blockly.FieldDropdown(
+            Array.from({length: 20}, (_, i) => [String(i + 1), String(i + 1)])
+          ), 'SLOT');
+        this.setOutput(true, 'Boolean');
+        this.setColour(COLORS.ai);
+        this.setTooltip('Returns true if the phrase in the specified slot was detected.');
+      }
+    };
+
+    Blockly.Blocks['smartkit_joystick_button'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('🕹️ Joystick')
+          .appendField(new Blockly.FieldDropdown([
+            ['Red', 'red'],
+            ['Green', 'green'],
+            ['Blue', 'blue'],
+          ]), 'COLOR')
+          .appendField('Button Pressed?');
+        this.setOutput(true, 'Boolean');
+        this.setColour(COLORS.sensor);
+        this.setTooltip('Check if the specified joystick button is pressed.');
+      }
+    };
+
+    Blockly.Blocks['smartkit_joystick_led'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('🕹️ Turn')
+          .appendField(new Blockly.FieldDropdown([
+            ['Red', 'red'],
+            ['Green', 'green'],
+            ['Blue', 'blue'],
+          ]), 'COLOR')
+          .appendField('LED')
+          .appendField(new Blockly.FieldDropdown([
+            ['ON', 'on'],
+            ['OFF', 'off'],
+          ]), 'STATE');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COLORS.sensor);
+        this.setTooltip('Turn a joystick LED on or off.');
+      }
+    };
+
+    Blockly.Blocks['smartkit_joystick_value'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('🕹️ Joystick')
+          .appendField(new Blockly.FieldDropdown([
+            ['X', 'x'],
+            ['Y', 'y'],
+          ]), 'AXIS')
+          .appendField('Value');
+        this.setOutput(true, 'Number');
+        this.setColour(COLORS.sensor);
+        this.setTooltip('Read the joystick position on the X or Y axis.');
+      }
+    };
+
+    Blockly.Blocks['smartkit_joystick_press'] = {
+      init() {
+        this.appendDummyInput().appendField('🕹️ Joystick Press State');
+        this.setOutput(true, 'Boolean');
+        this.setColour(COLORS.sensor);
+        this.setTooltip('Check if the joystick is being pressed down.');
+      }
+    };
+
+    Blockly.Blocks['smartkit_get_digital'] = {
+      init() {
+        this.appendDummyInput()
+          .appendField('🔌 Get Digital Signal')
+          .appendField(new Blockly.FieldDropdown([
+            ['EIO1','1'],['EIO2','2'],['EIO3','3'],['EIO4','4'],['EIO5','5'],
+            ['EIO6','6'],['EIO7','7'],['EIO8','8'],['EIO9','9'],['EIO10','10'],
+            ['EIO11','11'],['EIO12','12'],['EIO13','13'],['EIO14','14'],['EIO15','15'],
+            ['EIO16','16'],['EIO17','17'],['EIO18','18'],['EIO19','19'],['EIO20','20'],
+          ]), 'PORT');
+        this.setOutput(true, 'Number');
+        this.setColour(COLORS.io);
+        this.setTooltip('Read the digital signal value from an EIO port (1–20).');
       }
     };
 
