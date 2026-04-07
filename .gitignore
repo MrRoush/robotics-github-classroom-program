@@ -9,6 +9,7 @@ venv/
 env/
 .venv/
 .env/
+.bridge_venv/
 
 # IDE / editor files
 .vscode/

@@ -7,8 +7,9 @@ The browser IDE will connect via WebSocket and send Python code to execute.
 
 Usage
 -----
-  pip install flask flask-socketio
-  python bridge.py
+  python bridge.py          # auto-installs dependencies on first run
+  # — OR —
+  Double-click start_bridge.bat (Windows) / start_bridge.sh (macOS/Linux)
 
 Then open the web IDE and click "Connect to Bridge".
 
@@ -26,8 +27,88 @@ import subprocess
 import tempfile
 import threading
 
-from flask import Flask
-from flask_socketio import SocketIO, emit
+# ---------------------------------------------------------------------------
+# Auto-install missing dependencies
+# ---------------------------------------------------------------------------
+# This allows students to run `python bridge.py` directly without a separate
+# `pip install` step — helpful in school environments where terminal access
+# or admin privileges may be restricted.
+
+_REQUIRED_PACKAGES = [
+    ('flask', 'flask>=2.3'),
+    ('flask_socketio', 'flask-socketio>=5.3'),
+    ('simple_websocket', 'simple-websocket'),
+]
+
+
+def _ensure_dependencies():
+    """Check for required packages and install any that are missing."""
+    missing = []
+    for import_name, pip_name in _REQUIRED_PACKAGES:
+        try:
+            __import__(import_name)
+        except ImportError:
+            missing.append(pip_name)
+
+    if not missing:
+        return  # everything is already installed
+
+    print('[bridge] Installing missing dependencies:', ', '.join(missing))
+
+    # Determine the bridge directory for a local venv
+    bridge_dir = os.path.dirname(os.path.abspath(__file__))
+    venv_dir = os.path.join(bridge_dir, '.bridge_venv')
+
+    # Strategy 1: Use a local virtual environment (no admin rights needed)
+    if not os.path.isdir(venv_dir):
+        print(f'[bridge] Creating virtual environment in {venv_dir} ...')
+        try:
+            import venv
+            venv.create(venv_dir, with_pip=True)
+        except Exception as exc:
+            print(f'[bridge] Could not create venv ({exc}), trying --user install ...')
+            _pip_install_user(missing)
+            return
+
+    # Determine the venv Python executable
+    if sys.platform == 'win32':
+        venv_python = os.path.join(venv_dir, 'Scripts', 'python.exe')
+    else:
+        venv_python = os.path.join(venv_dir, 'bin', 'python')
+
+    # Install into the venv
+    try:
+        subprocess.check_call(
+            [venv_python, '-m', 'pip', 'install', '--quiet'] + missing,
+        )
+        print('[bridge] Dependencies installed successfully into local venv.')
+    except Exception as exc:
+        print(f'[bridge] venv pip install failed ({exc}), trying --user install ...')
+        _pip_install_user(missing)
+        return
+
+    # Re-launch this script inside the venv so imports resolve correctly
+    print('[bridge] Restarting inside the virtual environment ...')
+    os.execv(venv_python, [venv_python] + sys.argv)
+
+
+def _pip_install_user(packages):
+    """Fallback: install packages with --user flag (no admin required)."""
+    try:
+        subprocess.check_call(
+            [sys.executable, '-m', 'pip', 'install', '--user', '--quiet'] + packages,
+        )
+        print('[bridge] Dependencies installed with --user flag.')
+    except Exception as exc:
+        print(f'[bridge] ❌ Could not install dependencies: {exc}')
+        print('[bridge]    Try manually: pip install flask flask-socketio simple-websocket')
+        sys.exit(1)
+
+
+_ensure_dependencies()
+
+from flask import Flask                         # noqa: E402
+from flask_socketio import SocketIO, emit       # noqa: E402
 
 # ---------------------------------------------------------------------------
 # App setup
