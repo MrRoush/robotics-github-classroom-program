@@ -2316,6 +2316,205 @@ const BlocklySetup = (() => {
     };
     P['ai_starter_stop'] = () => 'robot.stop_driving()\n';
 
+    // ── Dobot Magician settings generators ──────────────────────────────
+    P['dobot_set_end_effector'] = (b) => `robot.set_end_effector('${b.getFieldValue('EFFECTOR')}')\n`;
+    P['dobot_set_motion_ratio'] = (b) => {
+      const vel = P.valueToCode(b, 'VELOCITY', P.ORDER_NONE) || 50;
+      const acc = P.valueToCode(b, 'ACCEL', P.ORDER_NONE) || 50;
+      return `robot.set_motion_ratio(${vel}, ${acc})\n`;
+    };
+    P['dobot_set_joint_speed'] = (b) => {
+      const vel = P.valueToCode(b, 'VELOCITY', P.ORDER_NONE) || 50;
+      const acc = P.valueToCode(b, 'ACCEL', P.ORDER_NONE) || 50;
+      return `robot.set_joint_speed(${vel}, ${acc})\n`;
+    };
+    P['dobot_set_xyz_speed'] = (b) => {
+      const vel = P.valueToCode(b, 'VELOCITY', P.ORDER_NONE) || 100;
+      const acc = P.valueToCode(b, 'ACCEL', P.ORDER_NONE) || 100;
+      return `robot.set_xyz_speed(${vel}, ${acc})\n`;
+    };
+    P['dobot_set_jump_height'] = (b) => {
+      const h = P.valueToCode(b, 'HEIGHT', P.ORDER_NONE) || 20;
+      const z = P.valueToCode(b, 'ZLIMIT', P.ORDER_NONE) || 150;
+      return `robot.set_jump_params(${h}, ${z})\n`;
+    };
+    P['dobot_jump_to'] = (b) => {
+      const x = P.valueToCode(b, 'X', P.ORDER_NONE) || 0;
+      const y = P.valueToCode(b, 'Y', P.ORDER_NONE) || 0;
+      const z = P.valueToCode(b, 'Z', P.ORDER_NONE) || 0;
+      const r = P.valueToCode(b, 'R', P.ORDER_NONE) || 0;
+      return `robot.jump_to(${x}, ${y}, ${z}, ${r})\n`;
+    };
+    P['dobot_go_to'] = (b) => {
+      const x = P.valueToCode(b, 'X', P.ORDER_NONE) || 0;
+      const y = P.valueToCode(b, 'Y', P.ORDER_NONE) || 0;
+      const z = P.valueToCode(b, 'Z', P.ORDER_NONE) || 0;
+      const r = P.valueToCode(b, 'R', P.ORDER_NONE) || 0;
+      const mode = b.getFieldValue('MODE');
+      return `robot.go_to(${x}, ${y}, ${z}, ${r}, mode='${mode}')\n`;
+    };
+    P['dobot_set_r'] = (b) => {
+      const r = P.valueToCode(b, 'R', P.ORDER_NONE) || 0;
+      return `robot.set_r(${r})\n`;
+    };
+    P['dobot_clear_alarm'] = () => 'robot.clear_alarm()\n';
+    P['dobot_set_stepper_speed'] = (b) => {
+      const port = b.getFieldValue('PORT');
+      const speed = P.valueToCode(b, 'SPEED', P.ORDER_NONE) || 1000;
+      return `robot.set_stepper_speed(${port}, ${speed})\n`;
+    };
+    P['dobot_set_stepper_pulses'] = (b) => {
+      const port = b.getFieldValue('PORT');
+      const speed = P.valueToCode(b, 'SPEED', P.ORDER_NONE) || 1000;
+      const pulses = P.valueToCode(b, 'PULSES', P.ORDER_NONE) || 5000;
+      return `robot.set_stepper_pulses(${port}, ${speed}, ${pulses})\n`;
+    };
+    P['dobot_lost_step_detect'] = () => 'robot.lost_step_detect()\n';
+    P['dobot_set_lost_step_threshold'] = (b) => {
+      const thresh = P.valueToCode(b, 'THRESHOLD', P.ORDER_NONE) || 3;
+      return `robot.set_lost_step_threshold(${thresh})\n`;
+    };
+
+    // ── Dobot control/event generators ──────────────────────────────────
+    P['dobot_when_started'] = (b) => {
+      const body = P.statementToCode(b, 'DO') || P.INDENT + 'pass\n';
+      return `def when_started():\n${body}\nwhen_started()\n`;
+    };
+    P['dobot_when_button'] = (b) => {
+      const btn = b.getFieldValue('BUTTON');
+      const body = P.statementToCode(b, 'DO') || P.INDENT + 'pass\n';
+      return `def on_button_${btn.toLowerCase()}():\n${body}\nrobot.on_button('${btn}', on_button_${btn.toLowerCase()})\n`;
+    };
+    P['dobot_broadcast'] = (b) => {
+      const msg = b.getFieldValue('MSG');
+      return `robot.broadcast("${msg}")\n`;
+    };
+    P['dobot_broadcast_wait'] = (b) => {
+      const msg = b.getFieldValue('MSG');
+      return `robot.broadcast_and_wait("${msg}")\n`;
+    };
+    P['dobot_when_receive'] = (b) => {
+      const msg = b.getFieldValue('MSG');
+      const body = P.statementToCode(b, 'DO') || P.INDENT + 'pass\n';
+      return `def on_${msg.replace(/\W/g, '_')}():\n${body}\nrobot.on_message("${msg}", on_${msg.replace(/\W/g, '_')})\n`;
+    };
+    P['dobot_wait_until'] = (b) => {
+      const cond = P.valueToCode(b, 'COND', P.ORDER_NONE) || 'True';
+      return `while not (${cond}):\n${P.INDENT}time.sleep(0.05)\n`;
+    };
+    P['dobot_stop'] = () => 'robot.emergency_stop()\nsys.exit()\n';
+    P['dobot_timer_reset'] = () => '_timer_start = time.time()\n';
+    P['dobot_timer_value'] = () => ['(time.time() - _timer_start)', P.ORDER_FUNCTION_CALL];
+
+    // ── SmartBot (AI Starter) generators ────────────────────────────────
+    P['smartbot_init'] = () => 'robot.smartbot_init()\n';
+    P['smartbot_set_motor_speed'] = (b) => {
+      const side = b.getFieldValue('SIDE');
+      const speed = P.valueToCode(b, 'SPEED', P.ORDER_NONE) || 100;
+      return `robot.set_motor_speed('${side}', ${speed})\n`;
+    };
+    P['smartbot_set_motor_pid'] = (b) => {
+      const kp = P.valueToCode(b, 'KP', P.ORDER_NONE) || 1;
+      const ki = P.valueToCode(b, 'KI', P.ORDER_NONE) || 0;
+      return `robot.set_motor_pid(${kp}, ${ki})\n`;
+    };
+    P['smartbot_set_led'] = (b) => {
+      const led = b.getFieldValue('LED');
+      const state = b.getFieldValue('STATE');
+      return `robot.set_led(${led}, '${state}')\n`;
+    };
+    P['smartbot_servo_attach'] = (b) => `robot.servo_attach(${b.getFieldValue('PORT')})\n`;
+    P['smartbot_servo_set_angle'] = (b) => {
+      const port = b.getFieldValue('PORT');
+      const angle = P.valueToCode(b, 'ANGLE', P.ORDER_NONE) || 90;
+      return `robot.servo_set_angle(${port}, ${angle})\n`;
+    };
+    P['smartbot_servo_detach'] = (b) => `robot.servo_detach(${b.getFieldValue('PORT')})\n`;
+    P['smartbot_ultrasonic_start'] = (b) => `robot.ultrasonic_start('${b.getFieldValue('POSITION')}')\n`;
+    P['smartbot_ultrasonic_detected'] = (b) => [`robot.ultrasonic_detected('${b.getFieldValue('POSITION')}')`, P.ORDER_FUNCTION_CALL];
+    P['smartbot_ultrasonic_data'] = (b) => [`robot.ultrasonic_distance('${b.getFieldValue('POSITION')}')`, P.ORDER_FUNCTION_CALL];
+    P['smartbot_ir_data'] = (b) => [`robot.ir_data(${b.getFieldValue('SENSOR')})`, P.ORDER_FUNCTION_CALL];
+    P['smartbot_geomagnetic'] = () => ['robot.geomagnetic_angle()', P.ORDER_FUNCTION_CALL];
+    P['smartbot_color_sensor_init'] = (b) => `robot.color_sensor_set('${b.getFieldValue('SIDE')}', '${b.getFieldValue('STATE')}')\n`;
+    P['smartbot_color_sensor_data'] = (b) => [`robot.color_sensor_data('${b.getFieldValue('SIDE')}', '${b.getFieldValue('CHANNEL')}')`, P.ORDER_FUNCTION_CALL];
+    P['smartbot_color_white_balance'] = (b) => `robot.color_white_balance('${b.getFieldValue('SIDE')}')\n`;
+    P['smartbot_switch_status'] = (b) => [`robot.switch_status(${b.getFieldValue('SWITCH')})`, P.ORDER_FUNCTION_CALL];
+    P['smartbot_motor_encoder'] = (b) => [`robot.motor_encoder('${b.getFieldValue('SIDE')}')`, P.ORDER_FUNCTION_CALL];
+    P['smartbot_photoresistance'] = () => ['robot.photoresistance()', P.ORDER_FUNCTION_CALL];
+    P['smartbot_ultrasonic_threshold'] = (b) => {
+      const thresh = P.valueToCode(b, 'THRESHOLD', P.ORDER_NONE) || 50;
+      return `robot.set_ultrasonic_threshold(${thresh})\n`;
+    };
+    P['smartbot_line_patrol_pid'] = (b) => {
+      const kp = P.valueToCode(b, 'KP', P.ORDER_NONE) || 1;
+      const ki = P.valueToCode(b, 'KI', P.ORDER_NONE) || 0;
+      const kd = P.valueToCode(b, 'KD', P.ORDER_NONE) || 0;
+      const el = P.valueToCode(b, 'ERROR_LIMIT', P.ORDER_NONE) || 100;
+      return `robot.set_line_patrol_pid(${kp}, ${ki}, ${kd}, ${el})\n`;
+    };
+    P['smartbot_set_port_mode'] = (b) => {
+      const port = P.valueToCode(b, 'PORT', P.ORDER_NONE) || 0;
+      const mode = b.getFieldValue('MODE');
+      return `robot.set_port_mode(${port}, '${mode}')\n`;
+    };
+    P['smartbot_digital_write'] = (b) => {
+      const port = P.valueToCode(b, 'PORT', P.ORDER_NONE) || 0;
+      const level = b.getFieldValue('LEVEL');
+      return `robot.digital_write(${port}, '${level}')\n`;
+    };
+    P['smartbot_analog_write'] = (b) => {
+      const port = P.valueToCode(b, 'PORT', P.ORDER_NONE) || 0;
+      const duty = P.valueToCode(b, 'DUTY', P.ORDER_NONE) || 0;
+      return `robot.analog_write(${port}, ${duty})\n`;
+    };
+    P['smartbot_digital_read'] = (b) => {
+      const port = P.valueToCode(b, 'PORT', P.ORDER_NONE) || 0;
+      return [`robot.digital_read(${port})`, P.ORDER_FUNCTION_CALL];
+    };
+    P['smartbot_analog_read'] = (b) => {
+      const port = P.valueToCode(b, 'PORT', P.ORDER_NONE) || 0;
+      return [`robot.analog_read(${port})`, P.ORDER_FUNCTION_CALL];
+    };
+    P['smartbot_set_servo_port'] = (b) => {
+      const port = P.valueToCode(b, 'PORT', P.ORDER_NONE) || 0;
+      const angle = P.valueToCode(b, 'ANGLE', P.ORDER_NONE) || 90;
+      return `robot.set_servo(${port}, ${angle})\n`;
+    };
+    P['smartbot_tone'] = (b) => {
+      const port = P.valueToCode(b, 'PORT', P.ORDER_NONE) || 0;
+      const freq = P.valueToCode(b, 'FREQ', P.ORDER_NONE) || 440;
+      const dur = P.valueToCode(b, 'DURATION', P.ORDER_NONE) || 500;
+      return `robot.tone(${port}, ${freq}, ${dur})\n`;
+    };
+    P['smartbot_set_baud_rate'] = (b) => `robot.set_baud_rate(${b.getFieldValue('RATE')})\n`;
+    P['smartbot_serial_print'] = (b) => {
+      const txt = P.valueToCode(b, 'TEXT', P.ORDER_NONE) || '""';
+      return `robot.serial_print(${txt})\n`;
+    };
+    P['smartbot_serial_println'] = (b) => {
+      const txt = P.valueToCode(b, 'TEXT', P.ORDER_NONE) || '""';
+      return `robot.serial_println(${txt})\n`;
+    };
+    P['smartbot_serial_read'] = () => ['robot.serial_read()', P.ORDER_FUNCTION_CALL];
+
+    // ── AI Smart Kit generators ─────────────────────────────────────────
+    P['smartkit_init'] = () => 'robot.smartkit_init()\n';
+    P['smartkit_speech_init'] = () => 'robot.speech_init()\n';
+    P['smartkit_speech_add_phrase'] = (b) => {
+      const phrase = P.valueToCode(b, 'PHRASE', P.ORDER_NONE) || '""';
+      const slot = b.getFieldValue('SLOT');
+      return `robot.speech_add_phrase(${phrase}, ${slot})\n`;
+    };
+    P['smartkit_speech_detect'] = (b) => {
+      const slot = b.getFieldValue('SLOT');
+      return [`robot.speech_detect(${slot})`, P.ORDER_FUNCTION_CALL];
+    };
+    P['smartkit_joystick_button'] = (b) => [`robot.joystick_button('${b.getFieldValue('COLOR')}')`, P.ORDER_FUNCTION_CALL];
+    P['smartkit_joystick_led'] = (b) => `robot.joystick_led('${b.getFieldValue('COLOR')}', '${b.getFieldValue('STATE')}')\n`;
+    P['smartkit_joystick_value'] = (b) => [`robot.joystick_value('${b.getFieldValue('AXIS')}')`, P.ORDER_FUNCTION_CALL];
+    P['smartkit_joystick_press'] = () => ['robot.joystick_press()', P.ORDER_FUNCTION_CALL];
+    P['smartkit_get_digital'] = (b) => [`robot.get_digital_eio(${b.getFieldValue('PORT')})`, P.ORDER_FUNCTION_CALL];
+
     // ── VEX V5 generators ───────────────────────────────────────────────
     P['vex_drive_forward']  = (b) => {
       const dist = P.valueToCode(b, 'DISTANCE', P.ORDER_NONE) || 12;
@@ -2720,8 +2919,9 @@ const BlocklySetup = (() => {
     let movementBlocks;
 
     if (robotType === 'ai_starter') {
-      // AI Starter is a wheeled robot — only drive/turn blocks
+      // AI Starter (SmartBot) is a wheeled robot — drive/turn/motor blocks
       movementBlocks = [
+        { kind: 'block', type: 'smartbot_init' },
         { kind: 'block', type: 'ai_starter_drive_forward',
           inputs: { DISTANCE: { block: { type: 'math_number', fields: { NUM: 100 } } } } },
         { kind: 'block', type: 'ai_starter_drive_backward',
@@ -2729,11 +2929,33 @@ const BlocklySetup = (() => {
         { kind: 'block', type: 'ai_starter_turn',
           inputs: { DEGREES: { block: { type: 'math_number', fields: { NUM: 90 } } } } },
         { kind: 'block', type: 'ai_starter_stop' },
+        { kind: 'block', type: 'smartbot_set_motor_speed',
+          inputs: { SPEED: { block: { type: 'math_number', fields: { NUM: 100 } } } } },
+        { kind: 'block', type: 'smartbot_servo_attach' },
+        { kind: 'block', type: 'smartbot_servo_set_angle',
+          inputs: { ANGLE: { block: { type: 'math_number', fields: { NUM: 90 } } } } },
+        { kind: 'block', type: 'smartbot_servo_detach' },
       ];
     } else {
       // Dobot Magician / Magician+AI — arm movement blocks
       movementBlocks = [
         { kind: 'block', type: 'dobot_move_home' },
+        { kind: 'block', type: 'dobot_jump_to',
+          inputs: {
+            X: { block: { type: 'math_number', fields: { NUM: 200 } } },
+            Y: { block: { type: 'math_number', fields: { NUM: 0 } } },
+            Z: { block: { type: 'math_number', fields: { NUM: 0 } } },
+            R: { block: { type: 'math_number', fields: { NUM: 0 } } },
+          }
+        },
+        { kind: 'block', type: 'dobot_go_to',
+          inputs: {
+            X: { block: { type: 'math_number', fields: { NUM: 200 } } },
+            Y: { block: { type: 'math_number', fields: { NUM: 0 } } },
+            Z: { block: { type: 'math_number', fields: { NUM: 0 } } },
+            R: { block: { type: 'math_number', fields: { NUM: 0 } } },
+          }
+        },
         { kind: 'block', type: 'dobot_move_to_point',
           inputs: {
             X: { block: { type: 'math_number', fields: { NUM: 0 } } },
@@ -2750,6 +2972,8 @@ const BlocklySetup = (() => {
         },
         { kind: 'block', type: 'dobot_move_delta_r',
           inputs: { DR: { block: { type: 'math_number', fields: { NUM: 0 } } } } },
+        { kind: 'block', type: 'dobot_set_r',
+          inputs: { R: { block: { type: 'math_number', fields: { NUM: 0 } } } } },
         { kind: 'block', type: 'dobot_set_joint_angles',
           inputs: {
             J1: { block: { type: 'math_number', fields: { NUM: 0 } } },
@@ -2782,11 +3006,12 @@ const BlocklySetup = (() => {
       contents: movementBlocks,
     });
 
-    // ── Gripper (arm robots only) ──
+    // ── Gripper / End Effector (arm robots only) ──
     if (robotType !== 'ai_starter') {
       contents.push({
         kind: 'category', name: '✋ Gripper', colour: COLORS.gripper,
         contents: [
+          { kind: 'block', type: 'dobot_set_end_effector' },
           { kind: 'block', type: 'dobot_grab' },
           { kind: 'block', type: 'dobot_release' },
           { kind: 'block', type: 'dobot_claw_open' },
@@ -2795,27 +3020,108 @@ const BlocklySetup = (() => {
       });
     }
 
-    // ── Speed ──
-    contents.push({
-      kind: 'category', name: '⚡ Speed', colour: COLORS.speed,
-      contents: [
-        { kind: 'block', type: 'dobot_set_speed' },
-      ]
-    });
+    // ── Speed / Settings ──
+    if (robotType === 'ai_starter') {
+      contents.push({
+        kind: 'category', name: '⚡ Speed', colour: COLORS.speed,
+        contents: [
+          { kind: 'block', type: 'dobot_set_speed' },
+          { kind: 'block', type: 'smartbot_set_motor_pid',
+            inputs: {
+              KP: { block: { type: 'math_number', fields: { NUM: 1 } } },
+              KI: { block: { type: 'math_number', fields: { NUM: 0 } } },
+            } },
+          { kind: 'block', type: 'smartbot_line_patrol_pid',
+            inputs: {
+              KP: { block: { type: 'math_number', fields: { NUM: 1 } } },
+              KI: { block: { type: 'math_number', fields: { NUM: 0 } } },
+              KD: { block: { type: 'math_number', fields: { NUM: 0 } } },
+              ERROR_LIMIT: { block: { type: 'math_number', fields: { NUM: 100 } } },
+            } },
+        ]
+      });
+    } else {
+      contents.push({
+        kind: 'category', name: '⚡ Speed & Settings', colour: COLORS.speed,
+        contents: [
+          { kind: 'block', type: 'dobot_set_speed' },
+          { kind: 'block', type: 'dobot_set_motion_ratio',
+            inputs: {
+              VELOCITY: { block: { type: 'math_number', fields: { NUM: 50 } } },
+              ACCEL: { block: { type: 'math_number', fields: { NUM: 50 } } },
+            } },
+          { kind: 'block', type: 'dobot_set_joint_speed',
+            inputs: {
+              VELOCITY: { block: { type: 'math_number', fields: { NUM: 50 } } },
+              ACCEL: { block: { type: 'math_number', fields: { NUM: 50 } } },
+            } },
+          { kind: 'block', type: 'dobot_set_xyz_speed',
+            inputs: {
+              VELOCITY: { block: { type: 'math_number', fields: { NUM: 100 } } },
+              ACCEL: { block: { type: 'math_number', fields: { NUM: 100 } } },
+            } },
+          { kind: 'block', type: 'dobot_set_jump_height',
+            inputs: {
+              HEIGHT: { block: { type: 'math_number', fields: { NUM: 20 } } },
+              ZLIMIT: { block: { type: 'math_number', fields: { NUM: 150 } } },
+            } },
+        ]
+      });
+    }
 
     // ── Actions / I/O ──
-    contents.push({
-      kind: 'category', name: '⏱️ Actions', colour: COLORS.io,
-      contents: [
-        { kind: 'block', type: 'dobot_wait',
-          inputs: { SECONDS: { block: { type: 'math_number', fields: { NUM: 1 } } } } },
-        { kind: 'block', type: 'dobot_beep' },
-        { kind: 'block', type: 'dobot_print',
-          inputs: { TEXT: { block: { type: 'text', fields: { TEXT: 'Hello!' } } } } },
-        { kind: 'block', type: 'dobot_light_on' },
-        { kind: 'block', type: 'dobot_emergency_stop' },
-      ]
-    });
+    if (robotType === 'ai_starter') {
+      contents.push({
+        kind: 'category', name: '⏱️ Actions & I/O', colour: COLORS.io,
+        contents: [
+          { kind: 'block', type: 'dobot_wait',
+            inputs: { SECONDS: { block: { type: 'math_number', fields: { NUM: 1 } } } } },
+          { kind: 'block', type: 'dobot_beep' },
+          { kind: 'block', type: 'dobot_print',
+            inputs: { TEXT: { block: { type: 'text', fields: { TEXT: 'Hello!' } } } } },
+          { kind: 'block', type: 'smartbot_set_led' },
+          { kind: 'block', type: 'dobot_emergency_stop' },
+          { kind: 'block', type: 'smartbot_set_port_mode',
+            inputs: { PORT: { block: { type: 'math_number', fields: { NUM: 2 } } } } },
+          { kind: 'block', type: 'smartbot_digital_write',
+            inputs: { PORT: { block: { type: 'math_number', fields: { NUM: 2 } } } } },
+          { kind: 'block', type: 'smartbot_analog_write',
+            inputs: {
+              PORT: { block: { type: 'math_number', fields: { NUM: 3 } } },
+              DUTY: { block: { type: 'math_number', fields: { NUM: 128 } } },
+            } },
+          { kind: 'block', type: 'smartbot_digital_read',
+            inputs: { PORT: { block: { type: 'math_number', fields: { NUM: 2 } } } } },
+          { kind: 'block', type: 'smartbot_analog_read',
+            inputs: { PORT: { block: { type: 'math_number', fields: { NUM: 0 } } } } },
+          { kind: 'block', type: 'smartbot_set_servo_port',
+            inputs: {
+              PORT: { block: { type: 'math_number', fields: { NUM: 9 } } },
+              ANGLE: { block: { type: 'math_number', fields: { NUM: 90 } } },
+            } },
+          { kind: 'block', type: 'smartbot_tone',
+            inputs: {
+              PORT: { block: { type: 'math_number', fields: { NUM: 8 } } },
+              FREQ: { block: { type: 'math_number', fields: { NUM: 440 } } },
+              DURATION: { block: { type: 'math_number', fields: { NUM: 500 } } },
+            } },
+        ]
+      });
+    } else {
+      contents.push({
+        kind: 'category', name: '⏱️ Actions', colour: COLORS.io,
+        contents: [
+          { kind: 'block', type: 'dobot_wait',
+            inputs: { SECONDS: { block: { type: 'math_number', fields: { NUM: 1 } } } } },
+          { kind: 'block', type: 'dobot_beep' },
+          { kind: 'block', type: 'dobot_print',
+            inputs: { TEXT: { block: { type: 'text', fields: { TEXT: 'Hello!' } } } } },
+          { kind: 'block', type: 'dobot_light_on' },
+          { kind: 'block', type: 'dobot_emergency_stop' },
+          { kind: 'block', type: 'dobot_clear_alarm' },
+        ]
+      });
+    }
 
     // ── AI Features (only for ai_starter and magician_ai) ──
     if (robotType === 'ai_starter' || robotType === 'magician_ai') {
@@ -2831,8 +3137,48 @@ const BlocklySetup = (() => {
       });
     }
 
-    // ── Sensors (arm robots) ──
-    if (robotType !== 'ai_starter') {
+    // ── AI Smart Kit (only for magician_ai) ──
+    if (robotType === 'magician_ai') {
+      contents.push({
+        kind: 'category', name: '🧠 AI Smart Kit', colour: COLORS.ai,
+        contents: [
+          { kind: 'block', type: 'smartkit_init' },
+          { kind: 'block', type: 'smartkit_speech_init' },
+          { kind: 'block', type: 'smartkit_speech_add_phrase',
+            inputs: { PHRASE: { block: { type: 'text', fields: { TEXT: 'hello' } } } } },
+          { kind: 'block', type: 'smartkit_speech_detect' },
+          { kind: 'block', type: 'smartkit_joystick_button' },
+          { kind: 'block', type: 'smartkit_joystick_led' },
+          { kind: 'block', type: 'smartkit_joystick_value' },
+          { kind: 'block', type: 'smartkit_joystick_press' },
+          { kind: 'block', type: 'smartkit_get_digital' },
+        ]
+      });
+    }
+
+    // ── Sensors ──
+    if (robotType === 'ai_starter') {
+      // SmartBot sensors
+      contents.push({
+        kind: 'category', name: '📡 Sensors', colour: COLORS.sensor,
+        contents: [
+          { kind: 'block', type: 'smartbot_ultrasonic_start' },
+          { kind: 'block', type: 'smartbot_ultrasonic_detected' },
+          { kind: 'block', type: 'smartbot_ultrasonic_data' },
+          { kind: 'block', type: 'smartbot_ultrasonic_threshold',
+            inputs: { THRESHOLD: { block: { type: 'math_number', fields: { NUM: 50 } } } } },
+          { kind: 'block', type: 'smartbot_ir_data' },
+          { kind: 'block', type: 'smartbot_geomagnetic' },
+          { kind: 'block', type: 'smartbot_color_sensor_init' },
+          { kind: 'block', type: 'smartbot_color_white_balance' },
+          { kind: 'block', type: 'smartbot_color_sensor_data' },
+          { kind: 'block', type: 'smartbot_switch_status' },
+          { kind: 'block', type: 'smartbot_motor_encoder' },
+          { kind: 'block', type: 'smartbot_photoresistance' },
+        ]
+      });
+    } else {
+      // Arm robot sensors
       contents.push({
         kind: 'category', name: '📡 Sensors', colour: COLORS.sensor,
         contents: [
@@ -2841,14 +3187,17 @@ const BlocklySetup = (() => {
           { kind: 'block', type: 'dobot_read_color_sensor' },
           { kind: 'block', type: 'dobot_read_infrared' },
           { kind: 'block', type: 'dobot_infrared_detected' },
+          { kind: 'block', type: 'dobot_lost_step_detect' },
+          { kind: 'block', type: 'dobot_set_lost_step_threshold',
+            inputs: { THRESHOLD: { block: { type: 'math_number', fields: { NUM: 3 } } } } },
         ]
       });
     }
 
-    // ── Conveyor Belt (arm robots) ──
+    // ── Conveyor Belt / Stepper (arm robots) ──
     if (robotType !== 'ai_starter') {
       contents.push({
-        kind: 'category', name: '🏭 Conveyor Belt', colour: COLORS.conveyor,
+        kind: 'category', name: '🏭 Conveyor & Stepper', colour: COLORS.conveyor,
         contents: [
           { kind: 'block', type: 'dobot_init_conveyor' },
           { kind: 'block', type: 'dobot_conveyor_speed',
@@ -2856,12 +3205,46 @@ const BlocklySetup = (() => {
           { kind: 'block', type: 'dobot_conveyor_stop' },
           { kind: 'block', type: 'dobot_conveyor_distance',
             inputs: { DISTANCE: { block: { type: 'math_number', fields: { NUM: 100 } } } } },
+          { kind: 'block', type: 'dobot_set_stepper_speed',
+            inputs: { SPEED: { block: { type: 'math_number', fields: { NUM: 1000 } } } } },
+          { kind: 'block', type: 'dobot_set_stepper_pulses',
+            inputs: {
+              SPEED: { block: { type: 'math_number', fields: { NUM: 1000 } } },
+              PULSES: { block: { type: 'math_number', fields: { NUM: 5000 } } },
+            } },
+        ]
+      });
+    }
+
+    // ── Serial / Communication (SmartBot only) ──
+    if (robotType === 'ai_starter') {
+      contents.push({
+        kind: 'category', name: '📡 Serial', colour: COLORS.io,
+        contents: [
+          { kind: 'block', type: 'smartbot_set_baud_rate' },
+          { kind: 'block', type: 'smartbot_serial_println',
+            inputs: { TEXT: { block: { type: 'text', fields: { TEXT: 'Hello!' } } } } },
+          { kind: 'block', type: 'smartbot_serial_print',
+            inputs: { TEXT: { block: { type: 'text', fields: { TEXT: 'data' } } } } },
+          { kind: 'block', type: 'smartbot_serial_read' },
         ]
       });
     }
 
     // Separator
     contents.push({ kind: 'sep' });
+
+    // ── Events ──
+    contents.push({
+      kind: 'category', name: '🟢 Events', colour: COLORS.control,
+      contents: [
+        { kind: 'block', type: 'dobot_when_started' },
+        { kind: 'block', type: 'dobot_when_button' },
+        { kind: 'block', type: 'dobot_broadcast' },
+        { kind: 'block', type: 'dobot_broadcast_wait' },
+        { kind: 'block', type: 'dobot_when_receive' },
+      ]
+    });
 
     // ── Logic (conditionals, comparisons, booleans) ──
     contents.push({
@@ -2876,14 +3259,21 @@ const BlocklySetup = (() => {
       ]
     });
 
-    // ── Control (loops) ──
+    // ── Control (loops, wait, timer) ──
     contents.push({
-      kind: 'category', name: '🔁 Loops', colour: COLORS.control,
+      kind: 'category', name: '🔁 Control', colour: COLORS.control,
       contents: [
+        { kind: 'block', type: 'dobot_wait',
+          inputs: { SECONDS: { block: { type: 'math_number', fields: { NUM: 1 } } } } },
+        { kind: 'block', type: 'dobot_wait_until' },
         { kind: 'block', type: 'controls_repeat_ext',
           inputs: { TIMES: { block: { type: 'math_number', fields: { NUM: 5 } } } } },
         { kind: 'block', type: 'controls_whileUntil' },
         { kind: 'block', type: 'controls_for' },
+        { kind: 'block', type: 'controls_flow_statements' },
+        { kind: 'block', type: 'dobot_timer_reset' },
+        { kind: 'block', type: 'dobot_timer_value' },
+        { kind: 'block', type: 'dobot_stop' },
       ]
     });
 
@@ -2894,6 +3284,7 @@ const BlocklySetup = (() => {
         { kind: 'block', type: 'math_number' },
         { kind: 'block', type: 'math_arithmetic' },
         { kind: 'block', type: 'math_single' },
+        { kind: 'block', type: 'math_trig' },
         { kind: 'block', type: 'math_round' },
         { kind: 'block', type: 'math_modulo' },
         { kind: 'block', type: 'math_constrain',
@@ -2912,6 +3303,9 @@ const BlocklySetup = (() => {
       contents: [
         { kind: 'block', type: 'text' },
         { kind: 'block', type: 'text_join' },
+        { kind: 'block', type: 'text_length' },
+        { kind: 'block', type: 'text_charAt' },
+        { kind: 'block', type: 'text_indexOf' },
         { kind: 'block', type: 'text_print' },
       ]
     });
@@ -2920,6 +3314,24 @@ const BlocklySetup = (() => {
     contents.push({
       kind: 'category', name: '📦 Variables', colour: '#7c3aed',
       custom: 'VARIABLE',
+    });
+
+    // ── Lists ──
+    contents.push({
+      kind: 'category', name: '📋 Lists', colour: '#065f46',
+      contents: [
+        { kind: 'block', type: 'lists_create_empty' },
+        { kind: 'block', type: 'lists_create_with' },
+        { kind: 'block', type: 'lists_repeat',
+          inputs: {
+            NUM: { block: { type: 'math_number', fields: { NUM: 3 } } },
+          } },
+        { kind: 'block', type: 'lists_length' },
+        { kind: 'block', type: 'lists_isEmpty' },
+        { kind: 'block', type: 'lists_indexOf' },
+        { kind: 'block', type: 'lists_getIndex' },
+        { kind: 'block', type: 'lists_setIndex' },
+      ]
     });
 
     // ── Functions (custom functions with inputs) ──
@@ -3022,7 +3434,7 @@ const BlocklySetup = (() => {
           code,
         ].join('\n');
       }
-      return `# Auto-generated Python code from Blockly blocks\nimport time\nfrom dobot_wrapper import DobotRobot\n\n# Change the port to match your robot's COM port (check Device Manager)\nrobot = DobotRobot(port='${localStorage.getItem('robot_port') || 'COM3'}')\n\n${code}`;
+      return `# Auto-generated Python code from Blockly blocks\nimport time\nimport sys\nfrom dobot_wrapper import DobotRobot\n\n# Change the port to match your robot's COM port (check Device Manager)\nrobot = DobotRobot(port='${localStorage.getItem('robot_port') || 'COM3'}')\n_timer_start = time.time()\n\n${code}`;
     } catch (e) {
       return `# Could not generate Python code: ${e.message}`;
     }

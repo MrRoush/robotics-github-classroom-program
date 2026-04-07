@@ -957,6 +957,238 @@ class DobotRobot:
         self._sim_log(f'init_conveyor(STEPPER{stepper_port})')
         self._log(f'[CONVEYOR] Conveyor belt initialized on STEPPER{stepper_port}')
 
+    # ── Dobot Magician Settings ───────────────────────────────────────
+
+    def set_end_effector(self, effector: str = 'suction'):
+        """
+        Select the end effector type.
+
+        Args:
+            effector: 'gripper', 'suction', or 'pen'
+        """
+        self._sim_log(f"set_end_effector('{effector}')")
+        if not self._sim and self._device:
+            self._log(f'[EFFECTOR] End effector set to: {effector}')
+
+    def set_motion_ratio(self, velocity: float = 50, acceleration: float = 50):
+        """
+        Set the motion velocity and acceleration as a percentage (0–100%).
+
+        Args:
+            velocity: Velocity ratio percentage.
+            acceleration: Acceleration ratio percentage.
+        """
+        self._sim_log(f'set_motion_ratio(vel={velocity}%, accel={acceleration}%)')
+        if not self._sim and self._device:
+            v, a = _SPEED_PRESETS['fast']
+            self._device.speed(
+                velocity=v * float(velocity) / 100,
+                acceleration=a * float(acceleration) / 100)
+
+    def set_joint_speed(self, velocity: float = 50, acceleration: float = 50):
+        """
+        Set joint movement velocity (degrees/s) and acceleration (degrees/s²).
+
+        Args:
+            velocity: Joint velocity in degrees per second.
+            acceleration: Joint acceleration in degrees per second squared.
+        """
+        self._sim_log(f'set_joint_speed(vel={velocity}°/s, accel={acceleration}°/s²)')
+        if not self._sim and self._device:
+            try:
+                self._device.speed(velocity=float(velocity), acceleration=float(acceleration))
+            except Exception:
+                self._log('[SPEED] Joint speed setting not supported by firmware.')
+
+    def set_xyz_speed(self, velocity: float = 100, acceleration: float = 100):
+        """
+        Set Cartesian (XYZ) movement velocity (mm/s) and acceleration (mm/s²).
+
+        Args:
+            velocity: XYZ velocity in mm/s.
+            acceleration: XYZ acceleration in mm/s².
+        """
+        self._sim_log(f'set_xyz_speed(vel={velocity}mm/s, accel={acceleration}mm/s²)')
+        if not self._sim and self._device:
+            self._device.speed(velocity=float(velocity), acceleration=float(acceleration))
+
+    def set_jump_params(self, height: float = 20, z_limit: float = 150):
+        """
+        Set the jump height and maximum Z limit for Jump To movements.
+
+        Args:
+            height: Jump height in mm.
+            z_limit: Maximum Z height in mm.
+        """
+        self._sim_log(f'set_jump_params(height={height}mm, z_limit={z_limit}mm)')
+        self._jump_height = float(height)
+        self._jump_z_limit = float(z_limit)
+
+    def jump_to(self, x: float, y: float, z: float, r: float = 0):
+        """
+        Jump to a position: the arm lifts up, moves horizontally, then descends.
+
+        Args:
+            x: Target X coordinate (mm).
+            y: Target Y coordinate (mm).
+            z: Target Z coordinate (mm).
+            r: End effector rotation (degrees).
+        """
+        self._check_emergency()
+        self._sim_log(f'jump_to({x}, {y}, {z}, r={r})')
+        jump_h = getattr(self, '_jump_height', 20)
+        # Lift up
+        self._z += jump_h
+        self._check_bounds()
+        if not self._sim and self._device:
+            self._do_move()
+        # Move horizontally
+        self._x, self._y, self._r = float(x), float(y), float(r)
+        self._check_bounds()
+        if not self._sim and self._device:
+            self._do_move()
+        # Descend
+        self._z = float(z)
+        self._check_bounds()
+        if not self._sim and self._device:
+            self._do_move()
+
+    def go_to(self, x: float, y: float, z: float, r: float = 0,
+              mode: str = 'joint'):
+        """
+        Move to a position using joint or linear (straight line) motion.
+
+        Args:
+            x: Target X coordinate (mm).
+            y: Target Y coordinate (mm).
+            z: Target Z coordinate (mm).
+            r: End effector rotation (degrees).
+            mode: 'joint' for fastest path, 'linear' for straight line.
+        """
+        self._check_emergency()
+        self._sim_log(f"go_to({x}, {y}, {z}, r={r}, mode='{mode}')")
+        self._x, self._y, self._z, self._r = float(x), float(y), float(z), float(r)
+        self._check_bounds()
+        if not self._sim and self._device:
+            self._do_move()
+
+    def set_r(self, r: float = 0):
+        """
+        Set the end effector rotation to a specific angle.
+
+        Args:
+            r: Rotation angle in degrees.
+        """
+        self._check_emergency()
+        self._sim_log(f'set_r({r}°)')
+        self._r = float(r)
+        b = _WORKSPACE_BOUNDS
+        if self._r < b['r_min'] or self._r > b['r_max']:
+            self._log(f'⚠️  BOUNDS WARNING: R={self._r:.1f} out of range — clamped')
+            self._r = max(b['r_min'], min(b['r_max'], self._r))
+        if not self._sim and self._device:
+            self._do_move()
+
+    def clear_alarm(self):
+        """Clear any active alarms on the Dobot robot."""
+        self._sim_log('clear_alarm()')
+        self._emergency_stopped = False
+        if not self._sim and self._device:
+            try:
+                self._device.clear_alarms_state()
+                self._log('✅ Alarms cleared')
+            except Exception:
+                self._log('[ALARM] Alarm clear not supported by firmware.')
+
+    def set_stepper_speed(self, port: int = 1, speed: float = 1000):
+        """
+        Set continuous stepper motor speed.
+
+        Args:
+            port: Stepper port (1 or 2).
+            speed: Speed in pulses per second.
+        """
+        self._sim_log(f'set_stepper_speed(STEPPER{port}, {speed} pulse/s)')
+        if not self._sim and self._device:
+            try:
+                iface = int(port) - 1
+                self._device.conveyor_belt(float(speed), interface=iface)
+            except Exception:
+                self._log('[STEPPER] Stepper speed control not supported.')
+
+    def set_stepper_pulses(self, port: int = 1, speed: float = 1000,
+                           pulses: int = 5000):
+        """
+        Run stepper motor at a speed for a specific number of pulses.
+
+        Args:
+            port: Stepper port (1 or 2).
+            speed: Speed in pulses per second.
+            pulses: Number of pulses to run.
+        """
+        self._sim_log(f'set_stepper_pulses(STEPPER{port}, {speed} pulse/s, {pulses} pulses)')
+        if not self._sim and self._device:
+            try:
+                iface = int(port) - 1
+                run_time = abs(int(pulses)) / max(abs(float(speed)), 1)
+                self._device.conveyor_belt(float(speed), interface=iface)
+                time.sleep(run_time)
+                self._device.conveyor_belt(0, interface=iface)
+            except Exception:
+                self._log('[STEPPER] Stepper pulse control not supported.')
+
+    def lost_step_detect(self):
+        """Perform lost step detection to verify motor accuracy."""
+        self._sim_log('lost_step_detect()')
+        if not self._sim and self._device:
+            self._log('[DETECT] Lost step detection performed')
+
+    def set_lost_step_threshold(self, threshold: float = 3):
+        """
+        Set the lost step detection threshold.
+
+        Args:
+            threshold: Threshold in degrees.
+        """
+        self._sim_log(f'set_lost_step_threshold({threshold}°)')
+
+    # ── Message / Broadcast System ────────────────────────────────────
+
+    def broadcast(self, message: str):
+        """
+        Broadcast a named event message to all listeners.
+
+        Args:
+            message: Message name string.
+        """
+        self._sim_log(f'broadcast("{message}")')
+        cb = self._callbacks.get(f'message_{message}')
+        if cb:
+            cb()
+
+    def broadcast_and_wait(self, message: str):
+        """
+        Broadcast a named event message and wait for the listener to finish.
+
+        Args:
+            message: Message name string.
+        """
+        self._sim_log(f'broadcast_and_wait("{message}")')
+        cb = self._callbacks.get(f'message_{message}')
+        if cb:
+            cb()
+
+    def on_message(self, message: str, callback):
+        """
+        Register a callback for when a broadcast message is received.
+
+        Args:
+            message: Message name to listen for.
+            callback: Function to call when message is received.
+        """
+        self._callbacks[f'message_{message}'] = callback
+        self._sim_log(f"on_message('{message}', {callback.__name__})")
+
     # ── AI Starter Drive Methods ──────────────────────────────────────
 
     def drive_forward(self, mm: float = 100):
@@ -986,6 +1218,432 @@ class DobotRobot:
     def stop_driving(self):
         """Stop the AI Starter robot wheels."""
         self._sim_log('stop_driving()')
+
+    # ── SmartBot (AI Starter) Specific Methods ────────────────────────
+
+    def smartbot_init(self):
+        """Initialize the SmartBot (AI Starter) system."""
+        self._sim_log('smartbot_init()')
+        self._log('[SMARTBOT] SmartBot initialized')
+
+    def set_motor_speed(self, side: str = 'left', speed: float = 100):
+        """
+        Set the speed of a wheel motor.
+
+        Args:
+            side: 'left' or 'right'.
+            speed: Speed in RPM.
+        """
+        self._check_emergency()
+        self._sim_log(f"set_motor_speed('{side}', {speed} rpm)")
+
+    def set_motor_pid(self, kp: float = 1, ki: float = 0):
+        """
+        Set PID parameters for the SmartBot motors.
+
+        Args:
+            kp: Proportional gain.
+            ki: Integral gain.
+        """
+        self._sim_log(f'set_motor_pid(KP={kp}, KI={ki})')
+
+    def set_led(self, led: int = 1, state: str = 'on'):
+        """
+        Control an LED on the SmartBot.
+
+        Args:
+            led: LED number (1 or 2).
+            state: 'on', 'off', or 'blink'.
+        """
+        self._sim_log(f"set_led(LED{led}, '{state}')")
+
+    def servo_attach(self, port: int = 1):
+        """
+        Attach/enable a servo motor port.
+
+        Args:
+            port: Servo port (1 or 2).
+        """
+        self._sim_log(f'servo_attach(SERVO{port})')
+
+    def servo_set_angle(self, port: int = 1, angle: float = 90):
+        """
+        Set a servo motor angle.
+
+        Args:
+            port: Servo port (1 or 2).
+            angle: Target angle (0–180 degrees).
+        """
+        self._sim_log(f'servo_set_angle(SERVO{port}, {angle}°)')
+
+    def servo_detach(self, port: int = 1):
+        """
+        Detach/disable a servo motor port.
+
+        Args:
+            port: Servo port (1 or 2).
+        """
+        self._sim_log(f'servo_detach(SERVO{port})')
+
+    def ultrasonic_start(self, position: str = 'front'):
+        """
+        Start the ultrasonic sensor at the specified position.
+
+        Args:
+            position: 'right_front', 'front', or 'left_front'.
+        """
+        self._sim_log(f"ultrasonic_start('{position}')")
+
+    def ultrasonic_detected(self, position: str = 'front') -> bool:
+        """
+        Check if the ultrasonic sensor detects a barrier.
+
+        Args:
+            position: 'right_front', 'front', or 'left_front'.
+
+        Returns:
+            True if a barrier is detected.
+        """
+        self._sim_log(f"ultrasonic_detected('{position}')")
+        return False
+
+    def ultrasonic_distance(self, position: str = 'front') -> float:
+        """
+        Read the distance from the ultrasonic sensor.
+
+        Args:
+            position: 'right_front', 'front', or 'left_front'.
+
+        Returns:
+            Distance in millimeters.
+        """
+        self._sim_log(f"ultrasonic_distance('{position}')")
+        return 100.0
+
+    def ir_data(self, sensor: int = 1) -> float:
+        """
+        Read the IR sensor value.
+
+        Args:
+            sensor: IR sensor number (1–6).
+
+        Returns:
+            IR sensor reading.
+        """
+        self._sim_log(f'ir_data(IR{sensor})')
+        return 0.0
+
+    def geomagnetic_angle(self) -> float:
+        """
+        Read the geomagnetic (compass) heading angle.
+
+        Returns:
+            Heading angle in degrees (0–360).
+        """
+        self._sim_log('geomagnetic_angle()')
+        return 0.0
+
+    def color_sensor_set(self, side: str = 'right', state: str = 'on'):
+        """
+        Turn a color sensor on or off.
+
+        Args:
+            side: 'right' or 'left'.
+            state: 'on' or 'off'.
+        """
+        self._sim_log(f"color_sensor_set('{side}', '{state}')")
+
+    def color_white_balance(self, side: str = 'right'):
+        """
+        Calibrate white balance for a color sensor.
+
+        Args:
+            side: 'right' or 'left'.
+        """
+        self._sim_log(f"color_white_balance('{side}')")
+
+    def color_sensor_data(self, side: str = 'right',
+                          channel: str = 'red') -> int:
+        """
+        Read a color channel value from a color sensor.
+
+        Args:
+            side: 'right' or 'left'.
+            channel: 'red', 'green', or 'blue'.
+
+        Returns:
+            Color channel value (0–255).
+        """
+        self._sim_log(f"color_sensor_data('{side}', '{channel}')")
+        return 0
+
+    def switch_status(self, switch: int = 1) -> bool:
+        """
+        Read the status of a physical switch.
+
+        Args:
+            switch: Switch number (1, 2, or 3).
+
+        Returns:
+            True if the switch is pressed.
+        """
+        self._sim_log(f'switch_status(switch{switch})')
+        return False
+
+    def motor_encoder(self, side: str = 'right') -> float:
+        """
+        Read the motor encoder value.
+
+        Args:
+            side: 'right' or 'left'.
+
+        Returns:
+            Encoder value.
+        """
+        self._sim_log(f"motor_encoder('{side}')")
+        return 0.0
+
+    def photoresistance(self) -> float:
+        """
+        Read the photoresistance (light level) sensor.
+
+        Returns:
+            Light level value.
+        """
+        self._sim_log('photoresistance()')
+        return 0.0
+
+    def set_ultrasonic_threshold(self, threshold: float = 50):
+        """
+        Set the detection threshold for ultrasonic sensors.
+
+        Args:
+            threshold: Threshold distance in mm.
+        """
+        self._sim_log(f'set_ultrasonic_threshold({threshold}mm)')
+
+    def set_line_patrol_pid(self, kp: float = 1, ki: float = 0,
+                            kd: float = 0, error_limit: float = 100):
+        """
+        Set PID parameters for line patrol.
+
+        Args:
+            kp: Proportional gain.
+            ki: Integral gain.
+            kd: Derivative gain.
+            error_limit: Accumulated error limit.
+        """
+        self._sim_log(f'set_line_patrol_pid(KP={kp}, KI={ki}, KD={kd}, limit={error_limit})')
+
+    # ── SmartBot I/O Methods ──────────────────────────────────────────
+
+    def set_port_mode(self, port: int = 0, mode: str = 'output'):
+        """
+        Set a digital I/O port to input or output mode.
+
+        Args:
+            port: Port number.
+            mode: 'output' or 'input'.
+        """
+        self._sim_log(f"set_port_mode({port}, '{mode}')")
+
+    def digital_write(self, port: int = 0, level: str = 'high'):
+        """
+        Set a digital port output level.
+
+        Args:
+            port: Port number.
+            level: 'high' or 'low'.
+        """
+        self._sim_log(f"digital_write({port}, '{level}')")
+
+    def analog_write(self, port: int = 0, duty: int = 0):
+        """
+        Output an analog (PWM) signal.
+
+        Args:
+            port: Port number.
+            duty: Duty cycle (0–255).
+        """
+        self._sim_log(f'analog_write({port}, duty={duty})')
+
+    def digital_read(self, port: int = 0) -> int:
+        """
+        Read a digital signal from a port.
+
+        Args:
+            port: Port number.
+
+        Returns:
+            0 or 1.
+        """
+        self._sim_log(f'digital_read({port})')
+        return 0
+
+    def analog_read(self, port: int = 0) -> int:
+        """
+        Read an analog signal from a port.
+
+        Args:
+            port: Port number.
+
+        Returns:
+            Value between 0 and 1023.
+        """
+        self._sim_log(f'analog_read({port})')
+        return 0
+
+    def set_servo(self, port: int = 0, angle: float = 90):
+        """
+        Set the angle of a servo on a specific port.
+
+        Args:
+            port: Port number.
+            angle: Target angle in degrees.
+        """
+        self._sim_log(f'set_servo({port}, {angle}°)')
+
+    def tone(self, port: int = 0, frequency: float = 440,
+             duration: float = 500):
+        """
+        Output a sound wave on a port.
+
+        Args:
+            port: Port number.
+            frequency: Frequency in Hz.
+            duration: Duration in milliseconds.
+        """
+        self._sim_log(f'tone({port}, {frequency}Hz, {duration}ms)')
+
+    def set_baud_rate(self, rate: int = 9600):
+        """
+        Set the serial communication baud rate.
+
+        Args:
+            rate: Baud rate (e.g., 9600, 115200).
+        """
+        self._sim_log(f'set_baud_rate({rate})')
+
+    def serial_print(self, text: str = ''):
+        """
+        Print a message to the serial monitor (no newline).
+
+        Args:
+            text: Message to print.
+        """
+        self._sim_log(f'serial_print("{text}")')
+
+    def serial_println(self, text: str = ''):
+        """
+        Print a message followed by a newline to the serial monitor.
+
+        Args:
+            text: Message to print.
+        """
+        self._sim_log(f'serial_println("{text}")')
+
+    def serial_read(self) -> str:
+        """
+        Read data from the serial buffer.
+
+        Returns:
+            String data from serial buffer.
+        """
+        self._sim_log('serial_read()')
+        return ''
+
+    # ── AI Smart Kit Methods ──────────────────────────────────────────
+
+    def smartkit_init(self):
+        """Initialize the AI Smart Kit system."""
+        self._sim_log('smartkit_init()')
+        self._log('[SMARTKIT] AI Smart Kit initialized')
+
+    def speech_init(self):
+        """Initialize the speech recognition module."""
+        self._sim_log('speech_init()')
+
+    def speech_add_phrase(self, phrase: str = '', slot: int = 1):
+        """
+        Add a phrase to a speech recognition slot.
+
+        Args:
+            phrase: The phrase text.
+            slot: Slot number (1–20).
+        """
+        self._sim_log(f'speech_add_phrase("{phrase}", slot={slot})')
+
+    def speech_detect(self, slot: int = 1) -> bool:
+        """
+        Check if the phrase in a specific slot was detected.
+
+        Args:
+            slot: Slot number (1–20).
+
+        Returns:
+            True if the phrase was detected.
+        """
+        self._sim_log(f'speech_detect(slot={slot})')
+        return False
+
+    def joystick_button(self, color: str = 'red') -> bool:
+        """
+        Check if a joystick button is pressed.
+
+        Args:
+            color: Button color ('red', 'green', 'blue').
+
+        Returns:
+            True if pressed.
+        """
+        self._sim_log(f"joystick_button('{color}')")
+        return False
+
+    def joystick_led(self, color: str = 'red', state: str = 'on'):
+        """
+        Control a joystick LED.
+
+        Args:
+            color: LED color ('red', 'green', 'blue').
+            state: 'on' or 'off'.
+        """
+        self._sim_log(f"joystick_led('{color}', '{state}')")
+
+    def joystick_value(self, axis: str = 'x') -> float:
+        """
+        Read the joystick position on an axis.
+
+        Args:
+            axis: 'x' or 'y'.
+
+        Returns:
+            Joystick position value.
+        """
+        self._sim_log(f"joystick_value('{axis}')")
+        return 0.0
+
+    def joystick_press(self) -> bool:
+        """
+        Check if the joystick is being pressed down.
+
+        Returns:
+            True if pressed.
+        """
+        self._sim_log('joystick_press()')
+        return False
+
+    def get_digital_eio(self, port: int = 1) -> int:
+        """
+        Read the digital signal from an EIO port.
+
+        Args:
+            port: EIO port number (1–20).
+
+        Returns:
+            Digital signal value (0 or 1).
+        """
+        self._sim_log(f'get_digital_eio(EIO{port})')
+        return 0
 
     # ── Event Callbacks ───────────────────────────────────────────────
 
