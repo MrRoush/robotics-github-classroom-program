@@ -107,8 +107,8 @@ def _pip_install_user(packages):
 
 _ensure_dependencies()
 
-from flask import Flask                         # noqa: E402
-from flask_socketio import SocketIO, emit       # noqa: E402
+from flask import Flask                         # noqa: E402  — must come after _ensure_dependencies()
+from flask_socketio import SocketIO, emit       # noqa: E402  — must come after _ensure_dependencies()
 
 # ---------------------------------------------------------------------------
 # App setup
